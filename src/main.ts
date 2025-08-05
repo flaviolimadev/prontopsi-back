@@ -63,7 +63,7 @@ async function bootstrap() {
   // Prefixo global para APIs
   app.setGlobalPrefix('api');
   
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3019;
   await app.listen(port);
   
   console.log(`🚀 Backend rodando na porta ${port}`);

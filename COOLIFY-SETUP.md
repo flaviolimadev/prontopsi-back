@@ -9,10 +9,10 @@
 - **Output Directory**: `dist`
 - **Dockerfile**: `backEnd/backprontupsi/Dockerfile`
 - **Context**: `backEnd/backprontupsi/`
-- **Port**: `3000`
+- **Port**: `3019`
 
 #### **Health Check:**
-- **URL**: `http://localhost:3000/api/health`
+- **URL**: `http://localhost:3019/api/health`
 - **Interval**: 30s
 - **Timeout**: 10s
 - **Retries**: 3
@@ -24,7 +24,7 @@ Configure estas variáveis no painel do Coolify:
 ```env
 # Configurações da Aplicação
 NODE_ENV=production
-PORT=3000
+PORT=3019
 
 # Database (PostgreSQL)
 DB_HOST=postgres
@@ -72,7 +72,7 @@ DB_NAME=prontopsi_db
 #### **Domínio da API:**
 - **Domain**: `api.seudominio.com`
 - **SSL**: Automático (Let's Encrypt)
-- **Port**: `3000`
+- **Port**: `3019`
 
 ### **5. Ordem de Deploy**
 
@@ -92,7 +92,7 @@ DB_NAME=prontopsi_db
 **Solução**: Verifique as variáveis de banco de dados:
 ```bash
 # Teste conexão
-curl http://localhost:3000/api/health
+curl http://localhost:3019/api/health
 ```
 
 #### **Erro: "JWT_SECRET not defined"**
@@ -101,18 +101,23 @@ curl http://localhost:3000/api/health
 JWT_SECRET=sua-chave-super-secreta-muito-longa
 ```
 
-#### **Erro: "Cannot find module '/app/dist/main'"**
-**Solução**: O Dockerfile foi corrigido para:
-- Instalar todas as dependências (incluindo devDependencies)
-- Executar build corretamente
-- Usar `dist/main.js` em vez de `dist/main`
+#### **Erro: "Cannot find module '/app/dist/main.js'"**
+**Solução**: O Dockerfile foi completamente reescrito para:
+- Usar `npm install` em vez de `npm ci`
+- Build mais simples e confiável
+- Verificação explícita do build
+- Usar `dist/main.js` corretamente
 
 **Verificação**:
 ```bash
 # Testar build local
 cd backEnd/backprontupsi/
-./test-build.sh
+./test-local-build.sh
 ```
+
+**Se ainda falhar, use o Dockerfile.simple**:
+- **Dockerfile**: `Dockerfile.simple`
+- **Context**: `backEnd/backprontupsi/`
 
 ### **7. URLs Finais**
 
@@ -132,7 +137,7 @@ cd backEnd/backprontupsi/
 2. **Configurar Build**
    - **Context**: `backEnd/backprontupsi/`
    - **Dockerfile**: `Dockerfile`
-   - **Port**: `3000`
+   - **Port**: `3019`
 
 3. **Adicionar Variáveis de Ambiente**
    - Copie todas as variáveis da seção 2
