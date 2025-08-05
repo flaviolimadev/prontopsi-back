@@ -13,10 +13,7 @@ WORKDIR /app
 # Copiar arquivos de dependências primeiro (para cache otimizado)
 COPY package*.json ./
 
-# Instalar dependências
-RUN npm ci --only=production --silent
-
-# Copiar dependências de desenvolvimento para build
+# Instalar dependências (incluindo devDependencies para build)
 RUN npm ci --silent
 
 # Copiar código fonte
@@ -25,8 +22,8 @@ COPY . .
 # Build da aplicação
 RUN npm run build
 
-# Remover dependências de desenvolvimento
-RUN npm prune --production
+# Verificar se o build foi bem-sucedido
+RUN ls -la dist/ && echo "Build completed successfully"
 
 # Stage 2: Production
 FROM node:18-alpine AS production
@@ -66,4 +63,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Comando para iniciar a aplicação
-CMD ["dumb-init", "node", "dist/main"]
+CMD ["dumb-init", "node", "dist/main.js"]

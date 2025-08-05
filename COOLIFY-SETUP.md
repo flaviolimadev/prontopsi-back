@@ -101,6 +101,19 @@ curl http://localhost:3000/api/health
 JWT_SECRET=sua-chave-super-secreta-muito-longa
 ```
 
+#### **Erro: "Cannot find module '/app/dist/main'"**
+**Solução**: O Dockerfile foi corrigido para:
+- Instalar todas as dependências (incluindo devDependencies)
+- Executar build corretamente
+- Usar `dist/main.js` em vez de `dist/main`
+
+**Verificação**:
+```bash
+# Testar build local
+cd backEnd/backprontupsi/
+./test-build.sh
+```
+
 ### **7. URLs Finais**
 
 - **Backend API**: `https://api.seudominio.com/api`
