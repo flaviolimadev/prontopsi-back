@@ -49,12 +49,12 @@ fi
 
 echo "✅ Build executado com sucesso"
 
-# Verificar se dist/main.js existe
-if [ -f "dist/main.js" ]; then
-    echo "✅ dist/main.js encontrado"
-    echo "📏 Tamanho: $(ls -lh dist/main.js | awk '{print $5}')"
+# Verificar se dist/src/main.js existe
+if [ -f "dist/src/main.js" ]; then
+    echo "✅ dist/src/main.js encontrado"
+    echo "📏 Tamanho: $(ls -lh dist/src/main.js | awk '{print $5}')"
 else
-    echo "❌ dist/main.js não encontrado"
+    echo "❌ dist/src/main.js não encontrado"
     echo "📁 Arquivos em dist/:"
     ls -la dist/
     echo "🔍 Procurando por arquivos .js:"
@@ -64,7 +64,7 @@ fi
 
 # Testar execução
 echo "🧪 Testando execução..."
-timeout 5s node dist/main.js &
+timeout 5s node dist/src/main.js &
 PID=$!
 sleep 2
 if kill -0 $PID 2>/dev/null; then

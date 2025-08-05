@@ -101,7 +101,7 @@ curl http://localhost:3019/api/health
 JWT_SECRET=sua-chave-super-secreta-muito-longa
 ```
 
-#### **Erro: "Cannot find module '/app/dist/main.js'"**
+#### **Erro: "Cannot find module '/app/dist/src/main.js'"**
 **Solução**: Múltiplas opções de Dockerfile disponíveis:
 
 **Opção 1: Dockerfile principal (com debug)**

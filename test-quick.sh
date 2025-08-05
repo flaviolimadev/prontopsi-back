@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🧪 TESTE LOCAL: Verificando build do backend..."
+echo "🚀 TESTE RÁPIDO: Verificando build do backend..."
 
 # Verificar se estamos no diretório correto
 if [ ! -f "package.json" ]; then
@@ -30,30 +30,33 @@ fi
 
 echo "✅ Build executado com sucesso"
 
-       # Verificar se dist/src/main.js existe
-       if [ -f "dist/src/main.js" ]; then
-           echo "✅ dist/src/main.js encontrado"
-           echo "📏 Tamanho: $(ls -lh dist/src/main.js | awk '{print $5}')"
-       else
-           echo "❌ dist/src/main.js não encontrado"
-           echo "📁 Arquivos em dist/:"
-           ls -la dist/
-           exit 1
-       fi
+# Verificar estrutura do dist
+echo "📁 Estrutura do diretório dist/:"
+ls -la dist/
 
-       # Testar execução
-       echo "🧪 Testando execução..."
-       timeout 5s node dist/src/main.js &
-PID=$!
-sleep 2
-if kill -0 $PID 2>/dev/null; then
-    echo "✅ Aplicação iniciou corretamente"
-    kill $PID
+# Verificar se dist/src/main.js existe
+if [ -f "dist/src/main.js" ]; then
+    echo "✅ dist/src/main.js encontrado"
+    echo "📏 Tamanho: $(ls -lh dist/src/main.js | awk '{print $5}')"
 else
-    echo "❌ Aplicação não iniciou"
+    echo "❌ dist/src/main.js não encontrado"
+    echo "🔍 Procurando por arquivos .js:"
+    find dist/ -name "*.js" -type f
     exit 1
 fi
 
-echo ""
-echo "🎉 Teste local concluído com sucesso!"
-echo "💡 O Dockerfile deve funcionar agora." 
+# Testar execução rápida
+echo "🧪 Testando execução..."
+timeout 3s node dist/src/main.js &
+PID=$!
+sleep 1
+if kill -0 $PID 2>/dev/null; then
+    echo "✅ Aplicação iniciou corretamente"
+    kill $PID
+    echo ""
+    echo "🎉 Teste concluído com sucesso!"
+    echo "💡 O Dockerfile deve funcionar agora."
+else
+    echo "❌ Aplicação não iniciou"
+    exit 1
+fi 

@@ -35,10 +35,10 @@ RUN echo "🔨 Iniciando build..." && \
 RUN echo "✅ Build completed successfully" && \
     echo "📁 Conteúdo do diretório dist/:" && \
     ls -la dist/ && \
-    echo "🔍 Verificando dist/main.js:" && \
-    ls -la dist/main.js && \
-    echo "📏 Tamanho do main.js:" && \
-    ls -lh dist/main.js
+           echo "🔍 Verificando dist/src/main.js:" && \
+       ls -la dist/src/main.js && \
+       echo "📏 Tamanho do main.js:" && \
+       ls -lh dist/src/main.js
 
 # Criar diretório para uploads
 RUN mkdir -p uploads/avatars
@@ -51,4 +51,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3019/api/health || exit 1
 
 # Comando para iniciar a aplicação
-CMD ["dumb-init", "node", "dist/main.js"]
+CMD ["dumb-init", "node", "dist/src/main.js"]

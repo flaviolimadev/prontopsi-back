@@ -67,32 +67,32 @@ echo "✅ Build executado com sucesso"
 echo "📁 Conteúdo do diretório dist/:"
 ls -la dist/
 
-# Verificar se dist/main.js existe
-if [ -f "dist/main.js" ]; then
-    echo "✅ dist/main.js encontrado"
-    echo "📏 Tamanho: $(ls -lh dist/main.js | awk '{print $5}')"
-else
-    echo "❌ dist/main.js não encontrado"
-    echo "📁 Arquivos em dist/:"
-    find dist/ -type f -name "*.js" | head -10
-    exit 1
-fi
+       # Verificar se dist/src/main.js existe
+       if [ -f "dist/src/main.js" ]; then
+           echo "✅ dist/src/main.js encontrado"
+           echo "📏 Tamanho: $(ls -lh dist/src/main.js | awk '{print $5}')"
+       else
+           echo "❌ dist/src/main.js não encontrado"
+           echo "📁 Arquivos em dist/:"
+           find dist/ -type f -name "*.js" | head -10
+           exit 1
+       fi
 
 # Verificar se o arquivo é executável
 echo "🧪 Testando execução..."
-if node dist/main.js --help > /dev/null 2>&1; then
+if node dist/src/main.js --help > /dev/null 2>&1; then
     echo "✅ Arquivo main.js é executável"
 else
     echo "⚠️  Arquivo main.js encontrado mas pode ter problemas"
     echo "📋 Primeiras linhas do arquivo:"
-    head -5 dist/main.js
+    head -5 dist/src/main.js
 fi
 
 # Verificar dependências
 echo "📦 Verificando dependências..."
 node -e "
 try {
-  require('./dist/main.js');
+  require('./dist/src/main.js');
   console.log('✅ Módulo carrega sem erros');
 } catch (error) {
   console.log('❌ Erro ao carregar módulo:', error.message);

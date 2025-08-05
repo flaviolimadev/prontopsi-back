@@ -34,4 +34,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3019/api/health || exit 1
 
 # Comando de inicialização
-CMD ["dumb-init", "node", "dist/main.js"] 
+CMD ["dumb-init", "node", "dist/src/main.js"] 
