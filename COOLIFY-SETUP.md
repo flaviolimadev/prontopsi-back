@@ -102,22 +102,30 @@ JWT_SECRET=sua-chave-super-secreta-muito-longa
 ```
 
 #### **Erro: "Cannot find module '/app/dist/main.js'"**
-**Solução**: O Dockerfile foi completamente reescrito para:
-- Usar `npm install` em vez de `npm ci`
-- Build mais simples e confiável
-- Verificação explícita do build
-- Usar `dist/main.js` corretamente
+**Solução**: Múltiplas opções de Dockerfile disponíveis:
+
+**Opção 1: Dockerfile principal (com debug)**
+- **Dockerfile**: `Dockerfile`
+- **Context**: `backEnd/backprontupsi/`
+
+**Opção 2: Dockerfile alternativo**
+- **Dockerfile**: `Dockerfile.alternative`
+- **Context**: `backEnd/backprontupsi/`
+
+**Opção 3: Dockerfile manual (sem NestJS CLI)**
+- **Dockerfile**: `Dockerfile.manual`
+- **Context**: `backEnd/backprontupsi/`
+
+**Opção 4: Dockerfile ultra-simples**
+- **Dockerfile**: `Dockerfile.simple`
+- **Context**: `backEnd/backprontupsi/`
 
 **Verificação**:
 ```bash
 # Testar build local
 cd backEnd/backprontupsi/
-./test-local-build.sh
+./test-docker-build.sh
 ```
-
-**Se ainda falhar, use o Dockerfile.simple**:
-- **Dockerfile**: `Dockerfile.simple`
-- **Context**: `backEnd/backprontupsi/`
 
 ### **7. URLs Finais**
 

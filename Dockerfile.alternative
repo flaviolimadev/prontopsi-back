@@ -1,0 +1,37 @@
+# Dockerfile alternativo para ProntuPsi Backend
+# Abordagem diferente para resolver o problema de build
+
+FROM node:18-alpine
+
+# Instalar dependências do sistema
+RUN apk add --no-cache curl dumb-init python3 make g++
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar tudo de uma vez
+COPY . .
+
+# Instalar dependências
+RUN npm install
+
+# Verificar se @nestjs/cli está disponível
+RUN npx nest --version
+
+# Executar build manualmente
+RUN npx nest build
+
+# Verificar build
+RUN ls -la dist/ && \
+    echo "Build files:" && \
+    find dist/ -name "*.js" -type f
+
+# Expor porta
+EXPOSE 3019
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3019/api/health || exit 1
+
+# Comando de inicialização
+CMD ["dumb-init", "node", "dist/main.js"] 

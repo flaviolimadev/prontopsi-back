@@ -1,0 +1,37 @@
+# Dockerfile manual para ProntuPsi Backend
+# Compilação manual sem NestJS CLI
+
+FROM node:18-alpine
+
+# Instalar dependências do sistema
+RUN apk add --no-cache curl dumb-init python3 make g++
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar tudo
+COPY . .
+
+# Instalar dependências
+RUN npm install
+
+# Compilar TypeScript manualmente
+RUN npx tsc
+
+# Verificar se o build foi bem-sucedido
+RUN echo "📁 Conteúdo do diretório dist/:" && \
+    ls -la dist/ && \
+    echo "🔍 Verificando dist/main.js:" && \
+    ls -la dist/main.js && \
+    echo "📏 Tamanho do main.js:" && \
+    ls -lh dist/main.js
+
+# Expor porta
+EXPOSE 3019
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3019/api/health || exit 1
+
+# Comando de inicialização
+CMD ["dumb-init", "node", "dist/main.js"] 

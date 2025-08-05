@@ -1,32 +1,54 @@
-# Dockerfile ultra-simples para ProntuPsi Backend
-# Versão que funciona definitivamente
+# Dockerfile para ProntuPsi Backend (NestJS)
+# Versão com debug completo e build forçado
 
 FROM node:18-alpine
 
-# Instalar curl para health check
-RUN apk add --no-cache curl
+# Instalar dependências do sistema
+RUN apk add --no-cache curl dumb-init python3 make g++
 
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar tudo
+# Copiar package.json primeiro (para cache)
+COPY package*.json ./
+
+# Instalar todas as dependências com debug
+RUN npm ci --verbose
+
+# Copiar todo o código fonte
 COPY . .
 
-# Instalar dependências
-RUN npm install
+# Verificar se os arquivos foram copiados
+RUN echo "📁 Arquivos copiados:" && ls -la
 
-# Build da aplicação
-RUN npm run build
+# Verificar se src/main.ts existe
+RUN echo "🔍 Verificando src/main.ts:" && ls -la src/main.ts
 
-# Verificar build
-RUN ls -la dist/ && echo "Build OK"
+# Verificar se @nestjs/cli está disponível
+RUN echo "🔧 Verificando @nestjs/cli:" && npx nest --version
 
-# Expor porta
+# Executar build com debug completo
+RUN echo "🔨 Iniciando build..." && \
+    npm run build || (echo "❌ Build falhou!" && exit 1)
+
+# Verificar se o build foi bem-sucedido
+RUN echo "✅ Build completed successfully" && \
+    echo "📁 Conteúdo do diretório dist/:" && \
+    ls -la dist/ && \
+    echo "🔍 Verificando dist/main.js:" && \
+    ls -la dist/main.js && \
+    echo "📏 Tamanho do main.js:" && \
+    ls -lh dist/main.js
+
+# Criar diretório para uploads
+RUN mkdir -p uploads/avatars
+
+# Expor porta da aplicação
 EXPOSE 3019
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3019/api/health || exit 1
 
-# Comando de inicialização
-CMD ["node", "dist/main.js"]
+# Comando para iniciar a aplicação
+CMD ["dumb-init", "node", "dist/main.js"]
