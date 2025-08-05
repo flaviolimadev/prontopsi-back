@@ -1,7 +1,7 @@
 # Dockerfile ultra-simples para ProntuPsi Backend
 # Fallback caso o principal não funcione
 
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Instalar curl para health check
 RUN apk add --no-cache curl

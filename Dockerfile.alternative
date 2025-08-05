@@ -1,7 +1,7 @@
 # Dockerfile alternativo para ProntuPsi Backend
 # Abordagem diferente para resolver o problema de build
 
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Instalar dependências do sistema
 RUN apk add --no-cache curl dumb-init python3 make g++

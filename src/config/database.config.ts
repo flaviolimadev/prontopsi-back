@@ -16,31 +16,25 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   migrationsRun: true,
   migrationsTableName: 'migrations',
   
-  // Configurações de sincronização (desabilitar para melhor performance)
-  synchronize: false, // configService.get<string>('NODE_ENV') === 'development',
+  // Configurações de sincronização
+  synchronize: false,
   
-  // Configurações de logging (desabilitar para melhor performance)
-  logging: false, // configService.get<string>('NODE_ENV') === 'development',
+  // Configurações de logging
+  logging: false,
   
-  // Estratégia de nomenclatura (snake_case para o banco)
+  // Estratégia de nomenclatura
   namingStrategy: new SnakeNamingStrategy(),
   
-  // Configurações de SSL (para produção)
+  // Configurações de SSL
   ssl: configService.get<string>('NODE_ENV') === 'production' 
     ? { rejectUnauthorized: false } 
     : false,
   
-  // Configurações de pool de conexões otimizadas
+  // Configurações de pool de conexões
   extra: {
-    max: 10, // Reduzir número máximo de conexões
-    min: 2,  // Manter conexões mínimas
-    connectionTimeoutMillis: 10000, // Aumentar timeout de conexão
-    idleTimeoutMillis: 60000, // Aumentar timeout de idle
-    acquireTimeoutMillis: 10000, // Timeout para adquirir conexão
-  },
-  
-  // Cache de queries para melhor performance
-  cache: {
-    duration: 30000, // 30 segundos de cache
+    max: 5,
+    min: 1,
+    connectionTimeoutMillis: 10000,
+    idleTimeoutMillis: 30000,
   },
 }); 

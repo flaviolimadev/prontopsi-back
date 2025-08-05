@@ -1,7 +1,7 @@
 # Dockerfile manual para ProntuPsi Backend
 # Compilação manual sem NestJS CLI
 
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Instalar dependências do sistema
 RUN apk add --no-cache curl dumb-init python3 make g++

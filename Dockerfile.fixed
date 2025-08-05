@@ -1,5 +1,5 @@
-# Dockerfile para ProntuPsi Backend (NestJS)
-# Versão com debug completo e build forçado
+# Dockerfile definitivo para ProntuPsi Backend (NestJS)
+# Resolve problemas de crypto e compatibilidade
 
 FROM node:20-alpine
 
@@ -12,8 +12,8 @@ WORKDIR /app
 # Copiar package.json primeiro (para cache)
 COPY package*.json ./
 
-# Instalar todas as dependências com debug
-RUN npm ci --verbose
+# Instalar todas as dependências
+RUN npm ci --silent
 
 # Copiar todo o código fonte
 COPY . .
@@ -27,18 +27,18 @@ RUN echo "🔍 Verificando src/main.ts:" && ls -la src/main.ts
 # Verificar se @nestjs/cli está disponível
 RUN echo "🔧 Verificando @nestjs/cli:" && npx nest --version
 
-# Executar build com debug completo
+# Executar build
 RUN echo "🔨 Iniciando build..." && \
-    npm run build || (echo "❌ Build falhou!" && exit 1)
+    npm run build
 
 # Verificar se o build foi bem-sucedido
 RUN echo "✅ Build completed successfully" && \
     echo "📁 Conteúdo do diretório dist/:" && \
     ls -la dist/ && \
-           echo "🔍 Verificando dist/src/main.js:" && \
-       ls -la dist/src/main.js && \
-       echo "📏 Tamanho do main.js:" && \
-       ls -lh dist/src/main.js
+    echo "🔍 Verificando dist/src/main.js:" && \
+    ls -la dist/src/main.js && \
+    echo "📏 Tamanho do main.js:" && \
+    ls -lh dist/src/main.js
 
 # Criar diretório para uploads
 RUN mkdir -p uploads/avatars
@@ -50,5 +50,5 @@ EXPOSE 3019
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3019/api/health || exit 1
 
-# Comando para iniciar a aplicação
-CMD ["dumb-init", "node", "--experimental-specifier-resolution=node", "dist/src/main.js"]
+# Comando para iniciar a aplicação com configurações de compatibilidade
+CMD ["dumb-init", "node", "--experimental-specifier-resolution=node", "--no-warnings", "dist/src/main.js"] 

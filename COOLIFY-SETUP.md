@@ -102,22 +102,20 @@ JWT_SECRET=sua-chave-super-secreta-muito-longa
 ```
 
 #### **Erro: "Cannot find module '/app/dist/src/main.js'"**
-**Solução**: Múltiplas opções de Dockerfile disponíveis:
+**Solução**: Use o Dockerfile corrigido:
 
-**Opção 1: Dockerfile principal (com debug)**
-- **Dockerfile**: `Dockerfile`
+**Dockerfile definitivo (recomendado)**
+- **Dockerfile**: `Dockerfile.fixed`
 - **Context**: `backEnd/backprontupsi/`
 
-**Opção 2: Dockerfile alternativo**
-- **Dockerfile**: `Dockerfile.alternative`
-- **Context**: `backEnd/backprontupsi/`
+#### **Erro: "ReferenceError: crypto is not defined"**
+**Solução**: Este erro foi corrigido com:
+1. **Node.js 20**: Atualizado para versão mais recente
+2. **TypeScript config**: Corrigido para CommonJS
+3. **Dockerfile.fixed**: Versão otimizada
 
-**Opção 3: Dockerfile manual (sem NestJS CLI)**
-- **Dockerfile**: `Dockerfile.manual`
-- **Context**: `backEnd/backprontupsi/`
-
-**Opção 4: Dockerfile ultra-simples**
-- **Dockerfile**: `Dockerfile.simple`
+**Dockerfile definitivo (resolve crypto)**
+- **Dockerfile**: `Dockerfile.fixed`
 - **Context**: `backEnd/backprontupsi/`
 
 **Verificação**:
