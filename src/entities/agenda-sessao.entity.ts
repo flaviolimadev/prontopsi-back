@@ -1,7 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { User } from './user.entity';
-import { Paciente } from './paciente.entity';
-import { Pagamento } from './pagamento.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 
 @Entity('agenda_sessoes')
 export class AgendaSessao {
@@ -48,14 +45,14 @@ export class AgendaSessao {
   updatedAt: Date;
 
   // Relacionamentos
-  @ManyToOne(() => User, user => user.agendaSessoes)
+  @ManyToOne('User', 'agendaSessoes')
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: any;
 
-  @ManyToOne(() => Paciente, paciente => paciente.agendaSessoes)
+  @ManyToOne('Paciente', 'agendaSessoes')
   @JoinColumn({ name: 'paciente_id' })
-  paciente: Paciente;
+  paciente: any;
 
-  @OneToMany(() => Pagamento, pagamento => pagamento.agendaSessao)
-  pagamentos: Pagamento[];
+  @OneToMany('Pagamento', 'agendaSessao')
+  pagamentos: any[];
 } 

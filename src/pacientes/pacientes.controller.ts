@@ -77,6 +77,17 @@ export class PacientesController {
     @Param('id') id: string,
     @Body() updatePacienteDto: UpdatePacienteDto,
   ) {
+    console.log('CONTROLLER - Raw body recebido:', JSON.stringify(updatePacienteDto, null, 2));
+    console.log('CONTROLLER - req.body direto:', JSON.stringify(req.body, null, 2));
+    
+    // Se medicacoes estiver vazio no DTO mas cheio no req.body, usar req.body
+    if (updatePacienteDto.medicacoes && Array.isArray(updatePacienteDto.medicacoes) && 
+        updatePacienteDto.medicacoes.length > 0 && Array.isArray(updatePacienteDto.medicacoes[0]) &&
+        updatePacienteDto.medicacoes[0].length === 0 && req.body.medicacoes) {
+      console.log('CONTROLLER - Detectado problema de serialização, usando req.body');
+      updatePacienteDto.medicacoes = req.body.medicacoes;
+    }
+    
     return this.pacientesService.update(req.user.sub, id, updatePacienteDto);
   }
 

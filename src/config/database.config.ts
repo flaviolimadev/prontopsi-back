@@ -16,11 +16,11 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   migrationsRun: true,
   migrationsTableName: 'migrations',
   
-  // Configurações de sincronização (apenas para desenvolvimento)
-  synchronize: configService.get<string>('NODE_ENV') === 'development',
+  // Configurações de sincronização (desabilitar para melhor performance)
+  synchronize: false, // configService.get<string>('NODE_ENV') === 'development',
   
-  // Configurações de logging
-  logging: configService.get<string>('NODE_ENV') === 'development',
+  // Configurações de logging (desabilitar para melhor performance)
+  logging: false, // configService.get<string>('NODE_ENV') === 'development',
   
   // Estratégia de nomenclatura (snake_case para o banco)
   namingStrategy: new SnakeNamingStrategy(),
@@ -30,10 +30,17 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     ? { rejectUnauthorized: false } 
     : false,
   
-  // Configurações de pool de conexões
+  // Configurações de pool de conexões otimizadas
   extra: {
-    max: 20,
-    connectionTimeoutMillis: 5000,
-    idleTimeoutMillis: 30000,
+    max: 10, // Reduzir número máximo de conexões
+    min: 2,  // Manter conexões mínimas
+    connectionTimeoutMillis: 10000, // Aumentar timeout de conexão
+    idleTimeoutMillis: 60000, // Aumentar timeout de idle
+    acquireTimeoutMillis: 10000, // Timeout para adquirir conexão
+  },
+  
+  // Cache de queries para melhor performance
+  cache: {
+    duration: 30000, // 30 segundos de cache
   },
 }); 

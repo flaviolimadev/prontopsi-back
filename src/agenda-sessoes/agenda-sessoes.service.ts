@@ -13,10 +13,14 @@ export class AgendaSessoesService {
 
   // CREATE - Criar nova sessão
   async create(userId: string, createAgendaSessaoDto: CreateAgendaSessaoDto): Promise<AgendaSessaoResponseDto> {
+    // Criar data sem problemas de fuso horário
+    const [year, month, day] = createAgendaSessaoDto.data.split('-').map(Number);
+    const data = new Date(year, month - 1, day); // month - 1 porque getMonth() retorna 0-11
+    
     const agendaSessao = this.agendaSessoesRepository.create({
       ...createAgendaSessaoDto,
       userId,
-      data: new Date(createAgendaSessaoDto.data),
+      data: data,
     });
 
     const savedAgendaSessao = await this.agendaSessoesRepository.save(agendaSessao);
@@ -36,6 +40,7 @@ export class AgendaSessoesService {
     const queryBuilder = this.agendaSessoesRepository
       .createQueryBuilder('agendaSessao')
       .leftJoinAndSelect('agendaSessao.paciente', 'paciente')
+      // Remover JOIN desnecessário com pagamentos para listagem simples
       .where('agendaSessao.userId = :userId', { userId });
 
     // Filtros
@@ -83,7 +88,8 @@ export class AgendaSessoesService {
   async findOne(userId: string, id: string): Promise<AgendaSessaoResponseDto> {
     const agendaSessao = await this.agendaSessoesRepository.findOne({
       where: { id, userId },
-      relations: ['paciente', 'pagamentos'],
+      relations: ['paciente'], // Remover pagamentos para otimizar
+      cache: 30000, // Cache de 30 segundos
     });
 
     if (!agendaSessao) {
@@ -99,6 +105,7 @@ export class AgendaSessoesService {
       where: { userId, pacienteId },
       relations: ['paciente'],
       order: { data: 'ASC', horario: 'ASC' },
+      cache: 30000, // Cache de 30 segundos
     });
 
     return agendaSessoes.map(sessao => this.toResponseDto(sessao));
@@ -110,6 +117,7 @@ export class AgendaSessoesService {
       where: { userId, data: new Date(data) },
       relations: ['paciente'],
       order: { horario: 'ASC' },
+      cache: 30000, // Cache de 30 segundos
     });
 
     return agendaSessoes.map(sessao => this.toResponseDto(sessao));
@@ -127,7 +135,10 @@ export class AgendaSessoesService {
 
     // Atualizar campos
     if (updateAgendaSessaoDto.data) {
-      agendaSessao.data = new Date(updateAgendaSessaoDto.data);
+      // Criar data sem problemas de fuso horário
+      const [year, month, day] = updateAgendaSessaoDto.data.split('-').map(Number);
+      const data = new Date(year, month - 1, day); // month - 1 porque getMonth() retorna 0-11
+      agendaSessao.data = data;
     }
     if (updateAgendaSessaoDto.horario) {
       agendaSessao.horario = updateAgendaSessaoDto.horario;
@@ -241,10 +252,13 @@ export class AgendaSessoesService {
 
   // Método auxiliar para converter entidade para DTO
   private toResponseDto(agendaSessao: AgendaSessao): AgendaSessaoResponseDto {
-    // Tratar o campo data de forma robusta
+    // Tratar o campo data de forma robusta sem problemas de fuso horário
     let dataString: string;
     if (agendaSessao.data instanceof Date) {
-      dataString = agendaSessao.data.toISOString().split('T')[0];
+      const year = agendaSessao.data.getFullYear();
+      const month = String(agendaSessao.data.getMonth() + 1).padStart(2, '0');
+      const day = String(agendaSessao.data.getDate()).padStart(2, '0');
+      dataString = `${year}-${month}-${day}`;
     } else if (typeof agendaSessao.data === 'string') {
       dataString = agendaSessao.data;
     } else {

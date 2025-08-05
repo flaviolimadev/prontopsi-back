@@ -8,9 +8,6 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { User } from './user.entity';
-import { AgendaSessao } from './agenda-sessao.entity';
-import { Pagamento } from './pagamento.entity';
 
 @Entity('pacientes')
 export class Paciente {
@@ -63,15 +60,15 @@ export class Paciente {
   updatedAt: Date;
 
   // Relacionamento com User
-  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @ManyToOne('User', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: any;
 
   // Relacionamento com AgendaSessao
-  @OneToMany(() => AgendaSessao, agendaSessao => agendaSessao.paciente)
-  agendaSessoes: AgendaSessao[];
+  @OneToMany('AgendaSessao', 'paciente')
+  agendaSessoes: any[];
 
   // Relacionamento com Pagamento
-  @OneToMany(() => Pagamento, pagamento => pagamento.paciente)
-  pagamentos: Pagamento[];
+  @OneToMany('Pagamento', 'paciente')
+  pagamentos: any[];
 } 

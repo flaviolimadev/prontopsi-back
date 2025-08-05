@@ -10,10 +10,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Paciente } from './paciente.entity';
-import { AgendaSessao } from './agenda-sessao.entity';
-import { Pacote } from './pacote.entity';
-import { Pagamento } from './pagamento.entity';
+
 
 @Entity('users')
 export class User {
@@ -101,17 +98,17 @@ export class User {
   updatedAt: Date;
 
   // Relacionamentos
-  @OneToMany(() => Paciente, paciente => paciente.user)
-  pacientes: Paciente[];
+  @OneToMany('Paciente', 'user')
+  pacientes: any[];
 
-  @OneToMany(() => AgendaSessao, agendaSessao => agendaSessao.user)
-  agendaSessoes: AgendaSessao[];
+  @OneToMany('AgendaSessao', 'user')
+  agendaSessoes: any[];
 
-  @OneToMany(() => Pacote, pacote => pacote.user)
-  pacotes: Pacote[];
+  @OneToMany('Pacote', 'user')
+  pacotes: any[];
 
-  @OneToMany(() => Pagamento, pagamento => pagamento.user)
-  pagamentos: Pagamento[];
+  @OneToMany('Pagamento', 'user')
+  pagamentos: any[];
   // @JoinColumn({ name: 'plano_id' })
   // plano: Plano;
 

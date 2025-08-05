@@ -1,8 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from './user.entity';
-import { Paciente } from './paciente.entity';
-import { Pacote } from './pacote.entity';
-import { AgendaSessao } from './agenda-sessao.entity';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('pagamentos')
 export class Pagamento {
@@ -21,23 +17,23 @@ export class Pagamento {
   @Column({ name: 'agenda_sessao_id', type: 'uuid', nullable: true })
   agendaSessaoId: string | null;
 
-  @Column({ type: 'date' })
-  data: string;
-
-  @Column({ type: 'date' })
-  vencimento: string;
-
-  @Column({ type: 'int', default: 0 })
-  status: number; // 0 pendente, 1 pago, 2 confirmado, 3 cancelado
-
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   value: number;
+
+  @Column({ type: 'date' })
+  data: Date;
+
+  @Column({ type: 'date' })
+  vencimento: Date;
 
   @Column({ type: 'text', nullable: true })
   descricao: string | null;
 
+  @Column({ type: 'int', default: 0 })
+  status: number; // 0: pendente, 1: pago, 2: confirmado, 3: cancelado
+
   @Column({ type: 'int', nullable: true })
-  type: number | null; // 1 pix, 2 cartão, 3 boleto, 4 espécie
+  type: number | null; // 1: PIX, 2: Cartão, 3: Boleto, 4: Espécie
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   txid: string | null;
@@ -49,19 +45,19 @@ export class Pagamento {
   updatedAt: Date;
 
   // Relacionamentos
-  @ManyToOne(() => User, user => user.pagamentos, { onDelete: 'CASCADE' })
+  @ManyToOne('User', 'pagamentos')
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: any;
 
-  @ManyToOne(() => Paciente, paciente => paciente.pagamentos, { onDelete: 'CASCADE' })
+  @ManyToOne('Paciente', 'pagamentos')
   @JoinColumn({ name: 'paciente_id' })
-  paciente: Paciente;
+  paciente: any;
 
-  @ManyToOne(() => Pacote, pacote => pacote.pagamentos, { onDelete: 'SET NULL' })
+  @ManyToOne('Pacote', 'pagamentos')
   @JoinColumn({ name: 'pacote_id' })
-  pacote: Pacote | null;
+  pacote: any;
 
-  @ManyToOne(() => AgendaSessao, agendaSessao => agendaSessao.pagamentos, { onDelete: 'SET NULL' })
+  @ManyToOne('AgendaSessao', 'pagamentos')
   @JoinColumn({ name: 'agenda_sessao_id' })
-  agendaSessao: AgendaSessao | null;
+  agendaSessao: any;
 } 

@@ -13,6 +13,7 @@ import { PacientesModule } from './pacientes/pacientes.module';
 import { AgendaSessoesModule } from './agenda-sessoes/agenda-sessoes.module';
 import { PacotesModule } from './pacotes/pacotes.module';
 import { PagamentosModule } from './pagamentos/pagamentos.module';
+import { ProntuariosModule } from './prontuarios/prontuarios.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { PagamentosModule } from './pagamentos/pagamentos.module';
     AgendaSessoesModule,
     PacotesModule,
     PagamentosModule,
+    ProntuariosModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserSubscriber],

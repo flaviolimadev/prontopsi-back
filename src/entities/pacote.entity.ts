@@ -1,6 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from './user.entity';
-import { Pagamento } from './pagamento.entity';
 
 @Entity('pacotes')
 export class Pacote {
@@ -29,10 +27,10 @@ export class Pacote {
   updatedAt: Date;
 
   // Relacionamentos
-  @ManyToOne(() => User, user => user.pacotes, { onDelete: 'CASCADE' })
+  @ManyToOne('User', 'pacotes', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user: any;
 
-  @OneToMany(() => Pagamento, pagamento => pagamento.pacote)
-  pagamentos: Pagamento[];
+  @OneToMany('Pagamento', 'pacote')
+  pagamentos: any[];
 } 

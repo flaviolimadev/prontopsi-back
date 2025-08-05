@@ -39,7 +39,6 @@ export class CreatePacienteDto {
   contato_emergencia?: string;
 
   @IsOptional()
-  @IsArray()
   medicacoes?: any[];
 
   @IsOptional()
@@ -91,7 +90,6 @@ export class UpdatePacienteDto {
   contato_emergencia?: string;
 
   @IsOptional()
-  @IsArray()
   medicacoes?: any[];
 
   @IsOptional()

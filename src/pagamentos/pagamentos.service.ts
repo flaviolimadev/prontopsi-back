@@ -15,8 +15,8 @@ export class PagamentosService {
     const pagamento = this.pagamentoRepository.create({
       ...createPagamentoDto,
       userId,
-      data: createPagamentoDto.data,
-      vencimento: createPagamentoDto.vencimento,
+      data: new Date(createPagamentoDto.data),
+      vencimento: new Date(createPagamentoDto.vencimento),
     });
 
     const savedPagamento = await this.pagamentoRepository.save(pagamento);
@@ -52,11 +52,11 @@ export class PagamentosService {
     }
 
     if (dataInicio) {
-      queryBuilder.andWhere('pagamento.data >= :dataInicio', { dataInicio });
+      queryBuilder.andWhere('pagamento.data >= :dataInicio', { dataInicio: new Date(dataInicio) });
     }
 
     if (dataFim) {
-      queryBuilder.andWhere('pagamento.data <= :dataFim', { dataFim });
+      queryBuilder.andWhere('pagamento.data <= :dataFim', { dataFim: new Date(dataFim) });
     }
 
     if (pacienteId) {
@@ -119,7 +119,7 @@ export class PagamentosService {
 
   async findByDate(userId: string, data: string): Promise<PagamentoResponseDto[]> {
     const pagamentos = await this.pagamentoRepository.find({
-      where: { userId, data: data },
+      where: { userId, data: new Date(data) },
       relations: ['paciente', 'pacote'],
       order: { data: 'DESC' },
     });
@@ -146,9 +146,16 @@ export class PagamentosService {
       throw new NotFoundException('Pagamento não encontrado ou não pertence ao usuário');
     }
 
-    // As datas já vêm no formato correto (YYYY-MM-DD)
+    // Converter datas de string para Date se fornecidas
+    const updateData: any = { ...updatePagamentoDto };
+    if (updatePagamentoDto.data) {
+      updateData.data = new Date(updatePagamentoDto.data);
+    }
+    if (updatePagamentoDto.vencimento) {
+      updateData.vencimento = new Date(updatePagamentoDto.vencimento);
+    }
 
-    Object.assign(pagamento, updatePagamentoDto);
+    Object.assign(pagamento, updateData);
     const updatedPagamento = await this.pagamentoRepository.save(pagamento);
     return this.toResponseDto(updatedPagamento);
   }
@@ -243,14 +250,37 @@ export class PagamentosService {
   }
 
   private toResponseDto(pagamento: Pagamento): PagamentoResponseDto {
+    // Formatar datas para string YYYY-MM-DD
+    const formatDate = (date: any): string => {
+      if (!date) return '';
+      
+      let dateObj: Date;
+      if (date instanceof Date) {
+        dateObj = date;
+      } else if (typeof date === 'string') {
+        dateObj = new Date(date);
+      } else {
+        return '';
+      }
+      
+      if (isNaN(dateObj.getTime())) {
+        return '';
+      }
+      
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     return {
       id: pagamento.id,
       userId: pagamento.userId,
       pacienteId: pagamento.pacienteId,
       pacoteId: pagamento.pacoteId,
       agendaSessaoId: pagamento.agendaSessaoId,
-      data: pagamento.data,
-      vencimento: pagamento.vencimento,
+      data: formatDate(pagamento.data),
+      vencimento: formatDate(pagamento.vencimento),
       status: pagamento.status,
       value: pagamento.value,
       descricao: pagamento.descricao,
