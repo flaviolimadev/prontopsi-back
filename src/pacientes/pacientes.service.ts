@@ -444,6 +444,7 @@ export class PacientesService {
       contatos_emergencia: paciente.contatos_emergencia,
       medicacoes: paciente.medicacoes,
       status: paciente.status,
+      cor: paciente.cor,
       createdAt: paciente.createdAt.toISOString(),
       updatedAt: paciente.updatedAt.toISOString(),
     };

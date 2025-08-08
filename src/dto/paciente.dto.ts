@@ -47,6 +47,10 @@ export class CreatePacienteDto {
   contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
 
   @IsOptional()
+  @IsString()
+  cor?: string;
+
+  @IsOptional()
   @IsNumber()
   status?: number;
 }
@@ -101,6 +105,11 @@ export class UpdatePacienteDto {
   contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
 
   @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value && typeof value === 'string' ? value : undefined)
+  cor?: string;
+
+  @IsOptional()
   @IsNumber()
   status?: number;
 }
@@ -121,6 +130,7 @@ export class PacienteResponseDto {
   contatos_emergencia: Array<{id: string, nome: string, telefone: string}> | null;
   medicacoes: any[] | null;
   status: number;
+  cor: string | null;
   createdAt: string;
   updatedAt: string;
 } 

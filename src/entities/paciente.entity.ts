@@ -56,6 +56,9 @@ export class Paciente {
   @Column({ type: 'int', default: 0 })
   status: number;
 
+  @Column({ type: 'varchar', length: 7, nullable: true })
+  cor: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

@@ -77,8 +77,13 @@ export class PacientesController {
     @Param('id') id: string,
     @Body() updatePacienteDto: UpdatePacienteDto,
   ) {
+    console.log('=== CONTROLLER UPDATE PACIENTE ===');
+    console.log('CONTROLLER - ID recebido:', id);
+    console.log('CONTROLLER - User ID:', req.user.sub);
     console.log('CONTROLLER - Raw body recebido:', JSON.stringify(updatePacienteDto, null, 2));
     console.log('CONTROLLER - req.body direto:', JSON.stringify(req.body, null, 2));
+    console.log('CONTROLLER - Campo cor presente:', updatePacienteDto.cor);
+    console.log('CONTROLLER - Tipo do campo cor:', typeof updatePacienteDto.cor);
     
     // Se medicacoes estiver vazio no DTO mas cheio no req.body, usar req.body
     if (updatePacienteDto.medicacoes && Array.isArray(updatePacienteDto.medicacoes) && 
@@ -88,7 +93,15 @@ export class PacientesController {
       updatePacienteDto.medicacoes = req.body.medicacoes;
     }
     
-    return this.pacientesService.update(req.user.sub, id, updatePacienteDto);
+    try {
+      const result = await this.pacientesService.update(req.user.sub, id, updatePacienteDto);
+      console.log('CONTROLLER - Update realizado com sucesso');
+      return result;
+    } catch (error) {
+      console.error('CONTROLLER - Erro no update:', error);
+      console.error('CONTROLLER - Stack trace:', error.stack);
+      throw error;
+    }
   }
 
   // DELETE - Deletar paciente
@@ -118,6 +131,21 @@ export class PacientesController {
     @Body() body: { status: number },
   ) {
     return this.pacientesService.updateStatus(req.user.sub, id, body.status);
+  }
+
+  // UPDATE COLOR - Atualizar cor do paciente
+  @Put(':id/color')
+  async updateColor(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() body: { cor: string },
+  ) {
+    console.log('=== CONTROLLER UPDATE COLOR ===');
+    console.log('CONTROLLER - ID recebido:', id);
+    console.log('CONTROLLER - Cor recebida:', body.cor);
+    console.log('CONTROLLER - Tipo da cor:', typeof body.cor);
+    
+    return this.pacientesService.update(req.user.sub, id, { cor: body.cor });
   }
 
   // ADD MEDICATION - Adicionar medicação
