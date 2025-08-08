@@ -54,4 +54,14 @@ export class AuthController {
     const code = req.params.code;
     return this.authService.getUserByCode(code);
   }
+
+  @Post('verify-email')
+  async verifyEmail(@Body() body: { email: string; verificationCode: string }) {
+    return this.authService.verifyEmail(body.email, body.verificationCode);
+  }
+
+  @Post('resend-verification')
+  async resendVerificationCode(@Body() body: { email: string }) {
+    return this.authService.resendVerificationCode(body.email);
+  }
 } 

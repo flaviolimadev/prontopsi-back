@@ -50,6 +50,9 @@ export class Paciente {
   @Column({ type: 'json', nullable: true })
   medicacoes: any[] | null;
 
+  @Column({ type: 'json', nullable: true })
+  contatos_emergencia: Array<{id: string, nome: string, telefone: string}> | null;
+
   @Column({ type: 'int', default: 0 })
   status: number;
 

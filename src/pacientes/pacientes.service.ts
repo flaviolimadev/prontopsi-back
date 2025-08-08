@@ -138,6 +138,37 @@ export class PacientesService {
     }
 
     console.log('Backend - Aplicando update com medicacoes:', updatePacienteDto.medicacoes);
+    console.log('Backend - Aplicando update com contatos_emergencia:', updatePacienteDto.contatos_emergencia);
+
+    // Processar contatos de emergência - LÓGICA SIMPLIFICADA E CORRIGIDA
+    if (updatePacienteDto.contatos_emergencia !== undefined) {
+      console.log('=== INÍCIO PROCESSAMENTO CONTATOS DE EMERGÊNCIA ===');
+      console.log('1. Contatos original:', updatePacienteDto.contatos_emergencia);
+      
+      let contatosValidos: Array<{id: string, nome: string, telefone: string}> = [];
+      
+      // LÓGICA SIMPLIFICADA: Se for array, processar diretamente
+      if (Array.isArray(updatePacienteDto.contatos_emergencia)) {
+        console.log('2. É array, processando diretamente');
+        
+        contatosValidos = updatePacienteDto.contatos_emergencia
+          .filter(contato => contato && typeof contato === 'object')
+          .map((contato, index) => ({
+            id: String(contato?.id || Date.now() + index),
+            nome: String(contato?.nome || ''),
+            telefone: String(contato?.telefone || '')
+          }));
+        
+        console.log('3. Contatos processados:', contatosValidos);
+      } else {
+        console.log('2. Não é array, ignorando');
+      }
+      
+      // Salvar no banco
+      paciente.contatos_emergencia = contatosValidos;
+      console.log('4. Contatos salvos no paciente:', paciente.contatos_emergencia);
+      console.log('=== FIM PROCESSAMENTO CONTATOS DE EMERGÊNCIA ===');
+    }
 
     // Processar medicações - versão simplificada com logs detalhados
     if (updatePacienteDto.medicacoes !== undefined) {
@@ -152,22 +183,28 @@ export class PacientesService {
       // Tentar diferentes estratégias para extrair os dados
       console.log('=== TENTATIVAS DE EXTRAÇÃO ===');
       
-      // Estratégia 1: Se for array com elementos
-      if (Array.isArray(medicacaoFinal) && medicacaoFinal.length > 0) {
-        console.log('Estratégia 1 - Array com elementos');
-        console.log('Primeiro elemento:', medicacaoFinal[0]);
-        console.log('Tipo do primeiro:', typeof medicacaoFinal[0]);
-        console.log('É array o primeiro?', Array.isArray(medicacaoFinal[0]));
-        
-        // Se o primeiro elemento for um array, usar ele
-        if (Array.isArray(medicacaoFinal[0])) {
-          console.log('Primeiro elemento é array - usando ele');
-          medicacaoFinal = medicacaoFinal[0];
-        } else if (typeof medicacaoFinal[0] === 'object' && medicacaoFinal[0] !== null) {
-          console.log('Primeiro elemento é objeto - já está correto');
-          // medicacaoFinal já está correto como array de objetos
-        }
-      }
+             // Estratégia 1: Se for array com elementos
+       if (Array.isArray(medicacaoFinal) && medicacaoFinal.length > 0) {
+         console.log('Estratégia 1 - Array com elementos');
+         console.log('Primeiro elemento:', medicacaoFinal[0]);
+         console.log('Tipo do primeiro:', typeof medicacaoFinal[0]);
+         console.log('É array o primeiro?', Array.isArray(medicacaoFinal[0]));
+         
+         // Se o primeiro elemento for um array, usar ele
+         if (Array.isArray(medicacaoFinal[0])) {
+           console.log('Primeiro elemento é array - usando ele');
+           medicacaoFinal = medicacaoFinal[0];
+         } else if (typeof medicacaoFinal[0] === 'object' && medicacaoFinal[0] !== null) {
+           console.log('Primeiro elemento é objeto - já está correto');
+           // medicacaoFinal já está correto como array de objetos
+         }
+       }
+       
+       // Estratégia 2: Se for um array aninhado (como [ [objeto] ])
+       if (Array.isArray(medicacaoFinal) && medicacaoFinal.length === 1 && Array.isArray(medicacaoFinal[0])) {
+         console.log('Estratégia 2 - Array aninhado detectado');
+         medicacaoFinal = medicacaoFinal[0];
+       }
       
       console.log('5. Medicação após processamento:', medicacaoFinal);
       console.log('6. Tipo final:', typeof medicacaoFinal);
@@ -195,48 +232,20 @@ export class PacientesService {
       
       console.log('8. Medicações válidas final:', JSON.stringify(medicacoesValidas, null, 2));
       
-      // Salvar no banco
-      try {
-        console.log('=== TENTANDO SALVAR NO BANCO ===');
-        console.log('Dados para salvar:', JSON.stringify(medicacoesValidas, null, 2));
-        console.log('Query params:', { id, userId });
-        
-        const updateResult = await this.pacientesRepository
-          .createQueryBuilder()
-          .update(Paciente)
-          .set({ medicacoes: medicacoesValidas as any })
-          .where('id = :id AND userId = :userId', { id, userId })
-          .execute();
-        
-        console.log('9. RESULTADO da query:', updateResult);
-        console.log('9. Linhas afetadas:', updateResult.affected);
-        
-        if (updateResult.affected === 0) {
-          console.log('⚠️ NENHUMA LINHA FOI ATUALIZADA - Verificar se paciente existe');
-        } else {
-          console.log('✅ SUCESSO - Salvo no banco');
-        }
-        
-        // Verificar se realmente foi salvo
-        const pacienteVerificacao = await this.pacientesRepository.findOne({
-          where: { id, userId }
-        });
-        console.log('10. VERIFICAÇÃO - Medicacoes no banco:', pacienteVerificacao?.medicacoes);
-        
-      } catch (error) {
-        console.log('9. ERRO ao salvar no banco:', error);
-        throw error;
-      }
+             // Salvar no banco - mesma lógica simples
+       paciente.medicacoes = medicacoesValidas;
       
       console.log('=== FIM PROCESSAMENTO MEDICAÇÕES ===');
     }
 
-    // Atualizar outros campos (exceto medicacoes que já foi tratado)
-    const { medicacoes, ...otherFields } = updatePacienteDto;
-    if (Object.keys(otherFields).length > 0) {
-      Object.assign(paciente, otherFields);
-      await this.pacientesRepository.save(paciente);
-    }
+         // Atualizar outros campos (exceto medicacoes e contatos_emergencia que já foram tratados)
+     const { medicacoes, contatos_emergencia, ...otherFields } = updatePacienteDto;
+     if (Object.keys(otherFields).length > 0) {
+       Object.assign(paciente, otherFields);
+     }
+
+     // Salvar tudo de uma vez (medicacoes, contatos_emergencia e outros campos)
+     await this.pacientesRepository.save(paciente);
 
     // Buscar o paciente atualizado
     const updatedPaciente = await this.pacientesRepository.findOne({
@@ -432,6 +441,7 @@ export class PacientesService {
       genero: paciente.genero,
       observacao_geral: paciente.observacao_geral,
       contato_emergencia: paciente.contato_emergencia,
+      contatos_emergencia: paciente.contatos_emergencia,
       medicacoes: paciente.medicacoes,
       status: paciente.status,
       createdAt: paciente.createdAt.toISOString(),

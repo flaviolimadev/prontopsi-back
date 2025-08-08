@@ -445,6 +445,7 @@ export class UsersService {
       avatar: user.avatar,
       descricao: user.descricao,
       referredAt: user.referredAt,
+      emailVerified: user.emailVerified,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

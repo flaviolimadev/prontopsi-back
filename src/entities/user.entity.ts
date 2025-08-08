@@ -91,6 +91,15 @@ export class User {
   @Column({ name: 'referred_at', type: 'varchar', length: 20, nullable: true })
   referredAt: string | null;
 
+  @Column({ name: 'email_verified', type: 'boolean', default: false })
+  emailVerified: boolean;
+
+  @Column({ name: 'email_verification_code', type: 'varchar', length: 6, nullable: true })
+  emailVerificationCode: string | null;
+
+  @Column({ name: 'email_verification_expires', type: 'timestamp', nullable: true })
+  emailVerificationExpires: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

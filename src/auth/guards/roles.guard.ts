@@ -18,8 +18,11 @@ export class RolesGuard implements CanActivate {
 
     const { user } = context.switchToHttp().getRequest();
     
-    // Por enquanto, permitir acesso para todos os usuários autenticados
-    // Em uma implementação completa, você verificaria as roles do usuário
-    return requiredRoles.some((role) => user && user.role === role);
+    // Se o usuário está autenticado, permitir acesso
+    if (user) {
+      return true;
+    }
+    
+    return false;
   }
 } 

@@ -6,8 +6,9 @@ export class CreatePacienteDto {
   @Transform(({ value }) => value.toUpperCase())
   nome: string;
 
+  @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
@@ -23,11 +24,12 @@ export class CreatePacienteDto {
   @IsDateString()
   nascimento: string;
 
+  @IsOptional()
   @IsString()
-  cpf: string;
+  cpf?: string;
 
   @IsString()
-  @IsIn(['Masculino', 'Feminino', 'Não-binário', 'Prefere não informar'])
+  @IsIn(['Masculino', 'Feminino', 'Prefiro não informar'])
   genero: string;
 
   @IsOptional()
@@ -40,6 +42,9 @@ export class CreatePacienteDto {
 
   @IsOptional()
   medicacoes?: any[];
+
+  @IsOptional()
+  contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
 
   @IsOptional()
   @IsNumber()
@@ -78,7 +83,7 @@ export class UpdatePacienteDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['Masculino', 'Feminino', 'Não-binário', 'Prefere não informar'])
+  @IsIn(['Masculino', 'Feminino', 'Prefiro não informar'])
   genero?: string;
 
   @IsOptional()
@@ -91,6 +96,9 @@ export class UpdatePacienteDto {
 
   @IsOptional()
   medicacoes?: any[];
+
+  @IsOptional()
+  contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
 
   @IsOptional()
   @IsNumber()
@@ -110,6 +118,7 @@ export class PacienteResponseDto {
   genero: string | null;
   observacao_geral: string | null;
   contato_emergencia: string | null;
+  contatos_emergencia: Array<{id: string, nome: string, telefone: string}> | null;
   medicacoes: any[] | null;
   status: number;
   createdAt: string;

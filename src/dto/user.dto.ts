@@ -228,6 +228,7 @@ export class UserResponseDto {
   avatar?: string | null;
   descricao?: string | null;
   referredAt?: string | null;
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 } 

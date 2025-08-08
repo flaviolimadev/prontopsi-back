@@ -37,6 +37,8 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.5",
     "@nestjs/typeorm": "^11.0.0",
+    "@types/nodemailer": "^6.4.17",
+    "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
@@ -47,6 +49,7 @@
     "passport-local": "^1.0.0",
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
+    "resend": "^6.0.0",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.25",
     "typeorm-naming-strategies": "^4.1.0"

@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { CreateUserDto, LoginUserDto } from '../dto/user.dto';
+import { EmailService } from '../services/email.service';
 
 @Injectable()
 export class AuthService {
@@ -12,29 +13,69 @@ export class AuthService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
+    console.log('🔍 AuthService: Validando usuário para email:', email);
+    
     const user = await this.userRepository.findOne({ where: { email } });
     
-    if (user && await bcrypt.compare(password, user.password)) {
+    if (!user) {
+      console.log('❌ AuthService: Usuário não encontrado para email:', email);
+      return null;
+    }
+    
+    console.log('🔍 AuthService: Usuário encontrado no banco:', {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      emailVerified: user.emailVerified
+    });
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('🔍 AuthService: Senha válida:', isPasswordValid);
+    
+    if (isPasswordValid) {
       const { password, ...result } = user;
+      console.log('✅ AuthService: Validação bem-sucedida para:', email);
       return result;
     }
     
+    console.log('❌ AuthService: Senha inválida para email:', email);
     return null;
   }
 
   async login(loginDto: LoginUserDto) {
+    console.log('🔍 AuthService: Iniciando login para email:', loginDto.email);
+    
     const user = await this.validateUser(loginDto.email, loginDto.password);
     
     if (!user) {
+      console.log('❌ AuthService: Credenciais inválidas para email:', loginDto.email);
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
+    console.log('🔍 AuthService: Usuário encontrado:', {
+      id: user.id,
+      email: user.email,
+      status: user.status,
+      emailVerified: user.emailVerified
+    });
+
+    // Verificar se o email foi verificado (prioridade sobre status)
+    if (!user.emailVerified) {
+      console.log('❌ AuthService: Email não verificado para:', loginDto.email);
+      throw new UnauthorizedException('Email não verificado');
+    }
+
+    // Verificar se o usuário está ativo
     if (user.status !== 1) {
+      console.log('❌ AuthService: Usuário inativo (status:', user.status, ') para email:', loginDto.email);
       throw new UnauthorizedException('Usuário inativo');
     }
+
+    console.log('✅ AuthService: Login bem-sucedido para:', loginDto.email);
 
     const payload = { 
       sub: user.id, 
@@ -58,6 +99,7 @@ export class AuthService {
         avatar: user.avatar,
         descricao: user.descricao,
         referredAt: user.referredAt,
+        emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },
@@ -65,9 +107,12 @@ export class AuthService {
   }
 
   async register(createUserDto: CreateUserDto) {
+    console.log('🔍 AuthService: Iniciando registro para email:', createUserDto.email);
+    
     // Validar campos obrigatórios
     if (!createUserDto.nome || !createUserDto.sobrenome || !createUserDto.email || 
         !createUserDto.password || !createUserDto.contato) {
+      console.log('❌ AuthService: Campos obrigatórios faltando para:', createUserDto.email);
       throw new BadRequestException('Nome, sobrenome, email, senha e contato são obrigatórios');
     }
 
@@ -77,8 +122,11 @@ export class AuthService {
     });
 
     if (existingUser) {
+      console.log('❌ AuthService: Email já cadastrado:', createUserDto.email);
       throw new ConflictException('Email já cadastrado');
     }
+
+    console.log('✅ AuthService: Email disponível para registro:', createUserDto.email);
 
     // Verificar se o código de referência existe (se fornecido)
     if (createUserDto.referredAt) {
@@ -87,38 +135,192 @@ export class AuthService {
       });
 
       if (!referredUser) {
+        console.log('❌ AuthService: Código de referência inválido:', createUserDto.referredAt);
         throw new ConflictException('Código de referência inválido');
       }
+      
+      console.log('✅ AuthService: Código de referência válido:', createUserDto.referredAt);
     }
 
     // Criar hash da senha
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(createUserDto.password, saltRounds);
 
+    // Gerar código de verificação
+    const verificationCode = this.generateVerificationCode();
+    const verificationExpires = new Date();
+    verificationExpires.setMinutes(verificationExpires.getMinutes() + 10); // 10 minutos
+
     // Criar usuário
     const user = this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
-      status: createUserDto.status ?? 1,
+      status: 0, // Usuário inativo até verificar email
       pontos: createUserDto.pontos ?? 0,
       nivelId: createUserDto.nivelId ?? 1,
+      emailVerified: false,
+      emailVerificationCode: verificationCode,
+      emailVerificationExpires: verificationExpires,
     });
 
     // O código será gerado automaticamente pelo subscriber
     const savedUser = await this.userRepository.save(user);
 
-    // Gerar token JWT
-    const payload = { 
-      sub: savedUser.id, 
+    console.log('✅ AuthService: Usuário salvo no banco:', {
+      id: savedUser.id,
       email: savedUser.email,
-      code: savedUser.code 
-    };
+      status: savedUser.status,
+      emailVerified: savedUser.emailVerified
+    });
 
-    const { password, ...userWithoutPassword } = savedUser;
+    // Enviar email de verificação
+    try {
+      await this.emailService.sendEmailVerificationCode(
+        savedUser.email,
+        savedUser.nome,
+        verificationCode
+      );
+      console.log('✅ AuthService: Email de verificação enviado para:', savedUser.email);
+    } catch (error) {
+      // Log do erro mas não falhar o registro
+      console.error('❌ AuthService: Erro ao enviar email de verificação:', error);
+    }
+
+    const { password, emailVerificationCode, ...userWithoutPassword } = savedUser;
+
+    console.log('✅ AuthService: Registro concluído com sucesso para:', savedUser.email);
 
     return {
-      token: this.jwtService.sign(payload),
+      message: 'Usuário registrado com sucesso. Verifique seu email para ativar sua conta.',
       user: userWithoutPassword,
+      requiresVerification: true,
+    };
+  }
+
+  /**
+   * Gera um código de verificação de 6 dígitos
+   */
+  private generateVerificationCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Verifica o código de verificação de email
+   */
+  async verifyEmail(email: string, verificationCode: string) {
+    console.log('🔍 AuthService: Iniciando verificação de email:', email);
+    console.log('🔍 AuthService: Código recebido:', verificationCode);
+    
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      console.log('❌ AuthService: Usuário não encontrado para email:', email);
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    console.log('🔍 AuthService: Usuário encontrado:', {
+      id: user.id,
+      email: user.email,
+      emailVerified: user.emailVerified,
+      hasVerificationCode: !!user.emailVerificationCode,
+      verificationExpires: user.emailVerificationExpires
+    });
+
+    if (user.emailVerified) {
+      console.log('❌ AuthService: Email já verificado para:', email);
+      throw new BadRequestException('Email já foi verificado');
+    }
+
+    if (!user.emailVerificationCode) {
+      console.log('❌ AuthService: Código de verificação não encontrado para:', email);
+      throw new BadRequestException('Código de verificação não encontrado');
+    }
+
+    if (user.emailVerificationCode !== verificationCode) {
+      console.log('❌ AuthService: Código inválido para:', email, 'Esperado:', user.emailVerificationCode, 'Recebido:', verificationCode);
+      throw new BadRequestException('Código de verificação inválido');
+    }
+
+    if (user.emailVerificationExpires && user.emailVerificationExpires < new Date()) {
+      console.log('❌ AuthService: Código expirado para:', email, 'Expira em:', user.emailVerificationExpires);
+      throw new BadRequestException('Código de verificação expirado');
+    }
+
+    console.log('✅ AuthService: Código válido, ativando usuário:', email);
+
+    // Ativar usuário
+    await this.userRepository.update(user.id, {
+      emailVerified: true,
+      status: 1,
+      emailVerificationCode: null,
+      emailVerificationExpires: null,
+    });
+
+    console.log('✅ AuthService: Usuário ativado com sucesso:', email);
+
+    // Gerar token JWT
+    const payload = { 
+      sub: user.id, 
+      email: user.email,
+      code: user.code 
+    };
+
+    const { password, emailVerificationCode, ...userWithoutPassword } = user;
+
+    return {
+      message: 'Email verificado com sucesso!',
+      token: this.jwtService.sign(payload),
+      user: {
+        ...userWithoutPassword,
+        emailVerified: true,
+        status: 1,
+      },
+    };
+  }
+
+  /**
+   * Reenvia código de verificação
+   */
+  async resendVerificationCode(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email já foi verificado');
+    }
+
+    // Gerar novo código de verificação
+    const verificationCode = this.generateVerificationCode();
+    const verificationExpires = new Date();
+    verificationExpires.setMinutes(verificationExpires.getMinutes() + 10); // 10 minutos
+
+    // Atualizar código no banco
+    await this.userRepository.update(user.id, {
+      emailVerificationCode: verificationCode,
+      emailVerificationExpires: verificationExpires,
+    });
+
+    // Enviar novo email de verificação
+    try {
+      await this.emailService.sendEmailVerificationCode(
+        user.email,
+        user.nome,
+        verificationCode
+      );
+    } catch (error) {
+      console.error('Erro ao reenviar email de verificação:', error);
+      throw new BadRequestException('Erro ao enviar email de verificação');
+    }
+
+    return {
+      message: 'Novo código de verificação enviado com sucesso',
     };
   }
 
