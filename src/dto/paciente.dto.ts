@@ -51,6 +51,10 @@ export class CreatePacienteDto {
   cor?: string;
 
   @IsOptional()
+  @IsString()
+  avatar?: string | null;
+
+  @IsOptional()
   @IsNumber()
   status?: number;
 }
@@ -110,6 +114,10 @@ export class UpdatePacienteDto {
   cor?: string;
 
   @IsOptional()
+  @IsString()
+  avatar?: string | null;
+
+  @IsOptional()
   @IsNumber()
   status?: number;
 }
@@ -131,6 +139,7 @@ export class PacienteResponseDto {
   medicacoes: any[] | null;
   status: number;
   cor: string | null;
+  avatar: string | null;
   createdAt: string;
   updatedAt: string;
 } 

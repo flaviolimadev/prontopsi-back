@@ -445,6 +445,7 @@ export class PacientesService {
       medicacoes: paciente.medicacoes,
       status: paciente.status,
       cor: paciente.cor,
+      avatar: paciente.avatar,
       createdAt: paciente.createdAt.toISOString(),
       updatedAt: paciente.updatedAt.toISOString(),
     };

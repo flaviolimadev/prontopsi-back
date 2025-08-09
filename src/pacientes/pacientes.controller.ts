@@ -11,15 +11,24 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { PacientesService } from './pacientes.service';
 import { CreatePacienteDto, UpdatePacienteDto } from '../dto/paciente.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CloudflareR2Service } from '../services/cloudflare-r2.service';
 
 @Controller('pacientes')
 @UseGuards(JwtAuthGuard)
 export class PacientesController {
-  constructor(private readonly pacientesService: PacientesService) {}
+  constructor(
+    private readonly pacientesService: PacientesService,
+    private readonly cloudflareR2Service: CloudflareR2Service,
+  ) {}
 
   // CREATE - Criar novo paciente
   @Post()
@@ -172,5 +181,86 @@ export class PacientesController {
   @Get('statistics/overview')
   async getStatistics(@Request() req) {
     return this.pacientesService.getStatistics(req.user.sub);
+  }
+
+  // POST - Upload avatar do paciente
+  @Post(':id/avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: memoryStorage(),
+      fileFilter: (req, file, cb) => {
+        console.log('FileFilter chamado:', file.originalname);
+        console.log('File mimetype:', file.mimetype);
+        console.log('File size:', file.size);
+        cb(null, true); // Accept any file for now for debug
+      },
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB (Increased for debug)
+      },
+    }),
+  )
+  async uploadAvatar(
+    @Request() req,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    console.log('UploadAvatar chamado para paciente:', id);
+    console.log('File recebido:', file);
+    console.log('User:', req.user);
+
+    if (!file) {
+      throw new BadRequestException('Nenhum arquivo foi enviado');
+    }
+
+    try {
+      // Upload para R2
+      const uploadResult = await this.cloudflareR2Service.uploadFile(file, 'pacientes');
+      console.log('Upload R2 resultado:', uploadResult);
+
+      // Atualizar o avatar do paciente
+      console.log('Atualizando avatar no banco para paciente:', id);
+      console.log('URL do avatar:', uploadResult.url);
+      
+      const updateResult = await this.pacientesService.update(req.user.sub, id, { avatar: uploadResult.url });
+      console.log('Resultado da atualização:', updateResult);
+
+      return {
+        message: 'Avatar do paciente atualizado com sucesso',
+        avatar_url: uploadResult.url,
+        paciente: updateResult,
+      };
+    } catch (error) {
+      console.error('Erro ao fazer upload do avatar:', error);
+      throw new BadRequestException('Erro ao fazer upload do avatar');
+    }
+  }
+
+  // DELETE - Remover avatar do paciente
+  @Delete(':id/avatar')
+  async deleteAvatar(@Request() req, @Param('id') id: string) {
+    try {
+      // Buscar paciente para pegar o avatar atual
+      const paciente = await this.pacientesService.findOne(req.user.sub, id);
+      
+      if (paciente.avatar) {
+        // Extrair o nome do arquivo da URL
+        const urlParts = paciente.avatar.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        
+        // Deletar do R2
+        await this.cloudflareR2Service.deleteFile(fileName);
+      }
+
+      // Atualizar paciente removendo o avatar
+      const updateResult = await this.pacientesService.update(req.user.sub, id, { avatar: undefined });
+
+      return {
+        message: 'Avatar do paciente removido com sucesso',
+        paciente: updateResult,
+      };
+    } catch (error) {
+      console.error('Erro ao remover avatar:', error);
+      throw new BadRequestException('Erro ao remover avatar');
+    }
   }
 } 
