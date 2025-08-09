@@ -16,6 +16,9 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   migrationsRun: true,
   migrationsTableName: 'migrations',
   
+  // Subscribers
+  subscribers: [__dirname + '/../**/*.subscriber{.ts,.js}'],
+  
   // Configurações de sincronização
   synchronize: false,
   

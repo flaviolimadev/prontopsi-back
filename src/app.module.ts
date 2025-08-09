@@ -14,6 +14,7 @@ import { ProfileModule } from './profile/profile.module';
 import { CadastroLinksModule } from './cadastro-links/cadastro-links.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { getDatabaseConfig } from './config/database.config';
+import { UserSubscriber } from './entities/subscribers/user.subscriber';
 
 @Module({
   imports: [
@@ -37,6 +38,6 @@ import { getDatabaseConfig } from './config/database.config';
     NotificationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, UserSubscriber],
 })
 export class AppModule {}
