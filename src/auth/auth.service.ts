@@ -6,14 +6,21 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { CreateUserDto, LoginUserDto } from '../dto/user.dto';
 import { EmailService } from '../services/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../entities/notification.entity';
+import { PasswordReset } from '../entities/password-reset.entity';
+import { RequestPasswordResetDto, VerifyResetCodeDto, ResetPasswordDto, ResetPasswordWithCodeDto } from '../dto/password-reset.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(PasswordReset)
+    private passwordResetRepository: Repository<PasswordReset>,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -260,6 +267,30 @@ export class AuthService {
 
     console.log('✅ AuthService: Usuário ativado com sucesso:', email);
 
+    // Enviar email de boas-vindas
+    try {
+      await this.emailService.sendWelcomeEmail(user.email, user.nome);
+      console.log('✅ AuthService: Email de boas-vindas enviado para:', user.email);
+    } catch (error) {
+      console.error('❌ AuthService: Erro ao enviar email de boas-vindas:', error);
+      // Não falhar o processo se o email não for enviado
+    }
+
+    // Criar notificação de boas-vindas
+    try {
+      await this.notificationsService.createSystemNotification(
+        user.id,
+        'Bem-vindo ao ProntuPsi! 🎉',
+        'Sua conta foi ativada com sucesso. Comece a usar todas as funcionalidades do sistema!',
+        NotificationType.SUCCESS,
+        '/dashboard'
+      );
+      console.log('✅ AuthService: Notificação de boas-vindas criada para:', user.id);
+    } catch (error) {
+      console.error('❌ AuthService: Erro ao criar notificação de boas-vindas:', error);
+      // Não falhar o processo se a notificação não for criada
+    }
+
     // Gerar token JWT
     const payload = { 
       sub: user.id, 
@@ -415,5 +446,167 @@ export class AuthService {
     return {
       message: 'Senha alterada com sucesso',
     };
+  }
+
+  /**
+   * Solicita reset de senha
+   */
+  async requestPasswordReset(requestDto: RequestPasswordResetDto) {
+    console.log('🔍 AuthService: Iniciando solicitação de reset de senha para:', requestDto.email);
+    
+    const user = await this.userRepository.findOne({ where: { email: requestDto.email } });
+    
+    if (!user) {
+      // Por segurança, não revelar se o email existe ou não
+      console.log('🔍 AuthService: Email não encontrado (não revelado ao usuário):', requestDto.email);
+      return { message: 'Se o email existir, você receberá um código de recuperação' };
+    }
+
+    // Invalidar resets anteriores do usuário
+    await this.passwordResetRepository.update(
+      { userId: user.id, used: false },
+      { used: true }
+    );
+
+    // Gerar código de reset
+    const resetCode = this.generateResetCode();
+    const resetToken = this.generateResetToken();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hora de validade
+
+    // Salvar reset no banco
+    const passwordReset = this.passwordResetRepository.create({
+      userId: user.id,
+      resetToken,
+      resetCode,
+      expiresAt,
+      used: false,
+    });
+
+    await this.passwordResetRepository.save(passwordReset);
+
+    console.log('✅ AuthService: Reset de senha criado para:', user.email);
+
+    // Enviar email de recuperação
+    try {
+      await this.emailService.sendPasswordResetEmail(
+        user.email,
+        resetToken,
+        resetCode,
+        user.nome
+      );
+      console.log('✅ AuthService: Email de reset de senha enviado para:', user.email);
+    } catch (error) {
+      console.error('❌ AuthService: Erro ao enviar email de reset de senha:', error);
+      throw new BadRequestException('Erro ao enviar email de recuperação');
+    }
+
+    return { message: 'Código de recuperação enviado com sucesso' };
+  }
+
+  /**
+   * Verifica código de reset
+   */
+  async verifyResetCode(verifyDto: VerifyResetCodeDto) {
+    console.log('🔍 AuthService: Verificando código de reset para:', verifyDto.email);
+    
+    const user = await this.userRepository.findOne({ where: { email: verifyDto.email } });
+    
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    const passwordReset = await this.passwordResetRepository.findOne({
+      where: {
+        userId: user.id,
+        resetCode: verifyDto.code,
+        used: false,
+      },
+    });
+
+    if (!passwordReset) {
+      throw new BadRequestException('Código inválido ou expirado');
+    }
+
+    if (passwordReset.expiresAt < new Date()) {
+      throw new BadRequestException('Código expirado');
+    }
+
+    console.log('✅ AuthService: Código de reset válido para:', user.email);
+
+    return {
+      message: 'Código válido',
+      token: passwordReset.resetToken,
+    };
+  }
+
+  /**
+   * Reseta senha com código
+   */
+  async resetPasswordWithCode(resetDto: ResetPasswordWithCodeDto) {
+    console.log('🔍 AuthService: Resetando senha com código para:', resetDto.email);
+    
+    const user = await this.userRepository.findOne({ where: { email: resetDto.email } });
+    
+    if (!user) {
+      throw new BadRequestException('Usuário não encontrado');
+    }
+
+    const passwordReset = await this.passwordResetRepository.findOne({
+      where: {
+        userId: user.id,
+        resetCode: resetDto.code,
+        used: false,
+      },
+    });
+
+    if (!passwordReset) {
+      throw new BadRequestException('Código inválido');
+    }
+
+    if (passwordReset.expiresAt < new Date()) {
+      throw new BadRequestException('Código expirado');
+    }
+
+    // Criar hash da nova senha
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(resetDto.newPassword, saltRounds);
+
+    // Atualizar a senha
+    await this.userRepository.update(user.id, { password: hashedNewPassword });
+
+    // Marcar reset como usado
+    await this.passwordResetRepository.update(passwordReset.id, { used: true });
+
+    console.log('✅ AuthService: Senha resetada com sucesso para:', user.email);
+
+    // Criar notificação de segurança
+    try {
+      await this.notificationsService.createSystemNotification(
+        user.id,
+        '🔐 Senha Alterada',
+        'Sua senha foi alterada com sucesso. Se você não fez essa alteração, entre em contato conosco imediatamente.',
+        NotificationType.WARNING,
+        '/configuracoes'
+      );
+    } catch (error) {
+      console.error('❌ AuthService: Erro ao criar notificação de segurança:', error);
+    }
+
+    return { message: 'Senha alterada com sucesso' };
+  }
+
+  /**
+   * Gera código de reset de 6 dígitos
+   */
+  private generateResetCode(): string {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  /**
+   * Gera token de reset seguro
+   */
+  private generateResetToken(): string {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
   }
 } 

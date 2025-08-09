@@ -182,8 +182,8 @@ export class EmailService {
   /**
    * Envia email de recuperação de senha
    */
-  async sendPasswordResetEmail(userEmail: string, resetToken: string, userName: string): Promise<boolean> {
-    const resetUrl = `${process.env.FRONTEND_URL || 'https://app.prontupsi.com'}/reset-password?token=${resetToken}`;
+  async sendPasswordResetEmail(userEmail: string, resetToken: string, resetCode: string, userName: string): Promise<boolean> {
+    const resetUrl = `${process.env.FRONTEND_URL || 'https://app.prontupsi.com'}/#/reset-password?token=${resetToken}`;
     const subject = '🔐 Recuperação de Senha - ProntuPsi';
     const html = `
       <!DOCTYPE html>
@@ -212,6 +212,14 @@ export class EmailService {
               <h2>Olá, ${userName}!</h2>
               <p>Recebemos uma solicitação para redefinir sua senha no ProntuPsi.</p>
               
+              <div style="background: #e8f4fd; border: 2px solid #667eea; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <h3 style="margin: 0 0 10px 0; color: #667eea;">🔐 Código de Recuperação</h3>
+                <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #667eea; margin: 15px 0;">
+                  ${resetCode}
+                </div>
+                <p style="margin: 0; color: #666; font-size: 14px;">Use este código para redefinir sua senha</p>
+              </div>
+              
               <div style="text-align: center;">
                 <a href="${resetUrl}" class="button">
                   Redefinir Minha Senha
@@ -221,9 +229,9 @@ export class EmailService {
               <div class="warning">
                 <strong>⚠️ Importante:</strong>
                 <ul>
-                  <li>Este link é válido por 1 hora</li>
+                  <li>Este código é válido por 1 hora</li>
                   <li>Se você não solicitou esta recuperação, ignore este email</li>
-                  <li>Nunca compartilhe este link com outras pessoas</li>
+                  <li>Nunca compartilhe este código com outras pessoas</li>
                 </ul>
               </div>
 

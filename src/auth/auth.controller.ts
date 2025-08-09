@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUserDto, LoginUserDto, UpdateUserDto } from '../dto/user.dto';
+import { RequestPasswordResetDto, VerifyResetCodeDto, ResetPasswordWithCodeDto } from '../dto/password-reset.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -63,5 +64,20 @@ export class AuthController {
   @Post('resend-verification')
   async resendVerificationCode(@Body() body: { email: string }) {
     return this.authService.resendVerificationCode(body.email);
+  }
+
+  @Post('request-password-reset')
+  async requestPasswordReset(@Body() requestDto: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(requestDto);
+  }
+
+  @Post('verify-reset-code')
+  async verifyResetCode(@Body() verifyDto: VerifyResetCodeDto) {
+    return this.authService.verifyResetCode(verifyDto);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() resetDto: ResetPasswordWithCodeDto) {
+    return this.authService.resetPasswordWithCode(resetDto);
   }
 } 

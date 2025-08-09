@@ -134,11 +134,15 @@ export class AuthService {
     // Salvar token no banco (implementar entidade para tokens de reset)
     // await this.saveResetToken(user.id, resetToken);
 
+    // Gerar código de reset
+    const resetCode = this.generateResetCode();
+    
     // Enviar email de recuperação
     try {
       await this.emailService.sendPasswordResetEmail(
         user.email,
         resetToken,
+        resetCode,
         user.nome
       );
     } catch (error) {
@@ -172,6 +176,11 @@ export class AuthService {
   private generateResetToken(): string {
     // Implementar geração de token seguro
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  }
+
+  private generateResetCode(): string {
+    // Gerar código de 6 dígitos
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   // ... outros métodos existentes

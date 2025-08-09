@@ -28,7 +28,8 @@ export class EmailController {
         
         case 'password-reset':
           const resetToken = 'test-token-123';
-          success = await this.emailService.sendPasswordResetEmail(to, resetToken, user.nome || 'Usuário');
+          const resetCode = '123456';
+          success = await this.emailService.sendPasswordResetEmail(to, resetToken, resetCode, user.nome || 'Usuário');
           break;
         
         case 'appointment':
