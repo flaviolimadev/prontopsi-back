@@ -21,6 +21,9 @@ import { PacientesService } from './pacientes.service';
 import { CreatePacienteDto, UpdatePacienteDto } from '../dto/paciente.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CloudflareR2Service } from '../services/cloudflare-r2.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { PacienteArquivo } from '../entities/paciente-arquivo.entity';
 
 @Controller('pacientes')
 @UseGuards(JwtAuthGuard)
@@ -28,6 +31,8 @@ export class PacientesController {
   constructor(
     private readonly pacientesService: PacientesService,
     private readonly cloudflareR2Service: CloudflareR2Service,
+    @InjectRepository(PacienteArquivo)
+    private readonly pacienteArquivoRepo: Repository<PacienteArquivo>,
   ) {}
 
   // CREATE - Criar novo paciente
@@ -262,5 +267,54 @@ export class PacientesController {
       console.error('Erro ao remover avatar:', error);
       throw new BadRequestException('Erro ao remover avatar');
     }
+  }
+
+  // ARQUIVOS - Upload de arquivo do paciente
+  @Post(':id/arquivos')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: 20 * 1024 * 1024 },
+    })
+  )
+  async uploadPacienteFile(
+    @Request() req,
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Nenhum arquivo foi enviado');
+    const userId = req.user.sub;
+    const upload = await this.cloudflareR2Service.uploadFile(file, `pacientes/${id}/arquivos`);
+    const registro = this.pacienteArquivoRepo.create({
+      userId,
+      pacienteId: id,
+      nome: file.originalname,
+      tipo: file.mimetype,
+      tamanho: file.size,
+      url: upload.url,
+      chave: upload.key,
+    });
+    const saved = await this.pacienteArquivoRepo.save(registro);
+    return saved;
+  }
+
+  // ARQUIVOS - Listar arquivos do paciente
+  @Get(':id/arquivos')
+  async listPacienteFiles(@Request() req, @Param('id') id: string) {
+    const userId = req.user.sub;
+    return this.pacienteArquivoRepo.find({ where: { pacienteId: id, userId }, order: { createdAt: 'DESC' } });
+  }
+
+  // ARQUIVOS - Excluir arquivo do paciente
+  @Delete(':id/arquivos/:fileId')
+  async deletePacienteFile(@Request() req, @Param('id') id: string, @Param('fileId') fileId: string) {
+    const userId = req.user.sub;
+    const registro = await this.pacienteArquivoRepo.findOne({ where: { id: fileId, pacienteId: id, userId } });
+    if (!registro) throw new BadRequestException('Arquivo não encontrado');
+    if (registro.chave) {
+      await this.cloudflareR2Service.deleteFile(registro.chave);
+    }
+    await this.pacienteArquivoRepo.remove(registro);
+    return { success: true };
   }
 } 

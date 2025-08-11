@@ -17,3 +17,4 @@ export class AddAvatarToPacientes1704067200002 implements MigrationInterface {
     `);
   }
 }
+

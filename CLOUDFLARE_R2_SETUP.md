@@ -111,3 +111,4 @@ Os arquivos ficam disponíveis em:
 ### Erro: "Bucket not found"
 - Verifique se o nome do bucket está correto
 - Verifique se o bucket foi criado na conta correta
+

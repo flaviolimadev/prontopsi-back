@@ -66,6 +66,62 @@ export class CreateCadastroSubmissionDto {
   @IsOptional()
   @IsString()
   horaConsulta?: string;
+
+  // Campos adicionais opcionais preenchidos no formulário público
+  @IsOptional()
+  @IsString()
+  nascimento?: string; // yyyy-MM-dd
+
+  @IsOptional()
+  @IsString()
+  genero?: string; // feminino | masculino | outro
+
+  // Endereço estruturado
+  @IsOptional()
+  @IsString()
+  enderecoLogradouro?: string;
+
+  @IsOptional()
+  @IsString()
+  enderecoNumero?: string;
+
+  @IsOptional()
+  @IsString()
+  enderecoBairro?: string;
+
+  @IsOptional()
+  @IsString()
+  enderecoCidade?: string;
+
+  @IsOptional()
+  @IsString()
+  enderecoEstado?: string;
+
+  @IsOptional()
+  @IsString()
+  enderecoCep?: string;
+
+  @IsOptional()
+  @IsString()
+  profissao?: string;
+
+  // Contato de emergência
+  @IsOptional()
+  @IsString()
+  contatoEmergenciaNome?: string;
+
+  @IsOptional()
+  @IsString()
+  contatoEmergenciaTelefone?: string;
+
+  @IsOptional()
+  @IsString()
+  contatoEmergenciaRelacao?: string;
+
+  // Avatar (base64 opcional para exibição na triagem)
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 }
 
 export class UpdateCadastroSubmissionDto {

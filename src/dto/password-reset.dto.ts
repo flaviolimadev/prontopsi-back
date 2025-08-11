@@ -43,3 +43,4 @@ export class ResetPasswordWithCodeDto {
   @MinLength(6, { message: 'Senha deve ter pelo menos 6 caracteres' })
   newPassword: string;
 }
+

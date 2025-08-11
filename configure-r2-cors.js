@@ -57,3 +57,4 @@ async function configureR2Cors() {
 }
 
 configureR2Cors().catch(console.error);
+

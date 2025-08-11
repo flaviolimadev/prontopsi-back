@@ -11,6 +11,7 @@ import { CreateAgendaSessaoDto } from '../dto/agenda-sessao.dto';
 import { PacientesService } from '../pacientes/pacientes.service';
 import { AgendaSessoesService } from '../agenda-sessoes/agenda-sessoes.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { CloudflareR2Service } from '../services/cloudflare-r2.service';
 
 @Injectable()
 export class CadastroLinksService {
@@ -26,6 +27,7 @@ export class CadastroLinksService {
     private pacientesService: PacientesService,
     private agendaSessoesService: AgendaSessoesService,
     private notificationsService: NotificationsService,
+    private cloudflareR2Service: CloudflareR2Service,
   ) {}
 
   async createLink(createDto: CreateCadastroLinkDto): Promise<CadastroLink> {
@@ -140,10 +142,63 @@ export class CadastroLinksService {
       pacienteId = updateDto.pacienteId;
     } else {
       // Criar paciente
-      const pacienteData: CreatePacienteDto = {
-        ...submission.pacienteData,
-        status: 1, // Ativo
+      // Mapear dados do formulário público para o formato esperado de Paciente
+      const pd: any = submission.pacienteData || {};
+      const enderecoParts = [
+        pd.enderecoLogradouro,
+        pd.enderecoNumero ? `nº ${pd.enderecoNumero}` : undefined,
+        pd.enderecoBairro,
+        pd.enderecoCidade && pd.enderecoEstado ? `${pd.enderecoCidade} - ${pd.enderecoEstado}` : pd.enderecoCidade || pd.enderecoEstado,
+        pd.enderecoCep
+      ].filter(Boolean);
+
+      const generoMap: Record<string, string> = {
+        feminino: 'Feminino',
+        masculino: 'Masculino',
+        outro: 'Prefiro não informar'
       };
+
+      const pacienteData: CreatePacienteDto = {
+        nome: pd.nome,
+        email: pd.email,
+        telefone: pd.telefone,
+        nascimento: pd.nascimento || pd.dataNascimento || new Date().toISOString().split('T')[0],
+        endereco: enderecoParts.length ? enderecoParts.join(', ') : undefined,
+        profissao: pd.profissao,
+        cpf: pd.cpf,
+        genero: generoMap[(pd.genero || '').toLowerCase()] || 'Prefiro não informar',
+        contato_emergencia: pd.contatoEmergenciaNome && pd.contatoEmergenciaTelefone
+          ? `${pd.contatoEmergenciaNome} - ${pd.contatoEmergenciaTelefone}${pd.contatoEmergenciaRelacao ? ` (${pd.contatoEmergenciaRelacao})` : ''}`
+          : undefined,
+        // Avatar: se base64, faz upload no R2 e salva a URL; se já for URL, usa direto
+        avatar: undefined,
+        status: 1,
+      };
+
+      // Upload do avatar se estiver em base64
+      if (pd.avatar && typeof pd.avatar === 'string') {
+        try {
+          if (pd.avatar.startsWith('data:image/')) {
+            const [header, base64Data] = pd.avatar.split(',');
+            const mimeMatch = header.match(/data:(.*?);base64/);
+            const mimetype = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            const buffer = Buffer.from(base64Data, 'base64');
+            const upload = await this.cloudflareR2Service.uploadBuffer(
+              buffer,
+              `avatar_${Date.now()}.jpg`,
+              mimetype,
+              'pacientes'
+            );
+            pacienteData.avatar = upload.url;
+          } else {
+            // Já é URL
+            pacienteData.avatar = pd.avatar;
+          }
+        } catch (e) {
+          // não bloquear a aprovação por falha de imagem
+          pacienteData.avatar = undefined;
+        }
+      }
 
       const paciente = this.pacienteRepository.create({
         ...pacienteData,

@@ -1,20 +1,19 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class UpdateAvatarColumn1704067200001 implements MigrationInterface {
-  name = 'UpdateAvatarColumn1704067200001';
+export class ChangeUserAvatarToText20250812000001 implements MigrationInterface {
+  name = 'ChangeUserAvatarToText20250812000001';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE "users" 
-      ALTER COLUMN "avatar" TYPE VARCHAR(1000)
+      ALTER TABLE "users"
+      ALTER COLUMN "avatar" TYPE TEXT
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-      ALTER TABLE "users" 
-      ALTER COLUMN "avatar" TYPE VARCHAR(255)
+      ALTER TABLE "users"
+      ALTER COLUMN "avatar" TYPE VARCHAR(1000)
     `);
   }
 }
-

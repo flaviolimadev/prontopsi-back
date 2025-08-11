@@ -82,7 +82,7 @@ export class User {
   @Column({ name: 'plano_id', type: 'uuid', nullable: true })
   planoId: string | null;
 
-  @Column({ name: 'avatar', type: 'varchar', length: 1000, nullable: true })
+  @Column({ name: 'avatar', type: 'text', nullable: true })
   avatar: string | null;
 
   @Column({ name: 'descricao', type: 'text', nullable: true })

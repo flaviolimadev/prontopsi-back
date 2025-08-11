@@ -8,6 +8,7 @@ import { AgendaSessao } from '../entities/agenda-sessao.entity';
 import { PacientesModule } from '../pacientes/pacientes.module';
 import { AgendaSessoesModule } from '../agenda-sessoes/agenda-sessoes.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { CloudflareR2Module } from '../services/cloudflare-r2.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     PacientesModule,
     AgendaSessoesModule,
     NotificationsModule,
+    CloudflareR2Module,
   ],
   controllers: [CadastroLinksController],
   providers: [CadastroLinksService],

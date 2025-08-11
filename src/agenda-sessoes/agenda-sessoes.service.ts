@@ -17,6 +17,14 @@ export class AgendaSessoesService {
     const [year, month, day] = createAgendaSessaoDto.data.split('-').map(Number);
     const data = new Date(year, month - 1, day); // month - 1 porque getMonth() retorna 0-11
     
+    // Bloqueio leve de conflito: impedir duplicidade de data+horário
+    const existing = await this.agendaSessoesRepository.findOne({
+      where: { userId, data, horario: createAgendaSessaoDto.horario },
+    });
+    if (existing) {
+      throw new BadRequestException('Já existe uma sessão agendada neste dia e horário.');
+    }
+
     const agendaSessao = this.agendaSessoesRepository.create({
       ...createAgendaSessaoDto,
       userId,
@@ -163,6 +171,16 @@ export class AgendaSessoesService {
     }
     if (updateAgendaSessaoDto.status !== undefined) {
       agendaSessao.status = updateAgendaSessaoDto.status;
+    }
+
+    // Se mudou data/horário, validar conflito
+    if (agendaSessao.data && agendaSessao.horario) {
+      const conflict = await this.agendaSessoesRepository.findOne({
+        where: { userId, data: agendaSessao.data, horario: agendaSessao.horario },
+      });
+      if (conflict && conflict.id !== agendaSessao.id) {
+        throw new BadRequestException('Já existe uma sessão agendada neste dia e horário.');
+      }
     }
 
     const updatedAgendaSessao = await this.agendaSessoesRepository.save(agendaSessao);

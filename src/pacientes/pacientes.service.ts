@@ -274,9 +274,18 @@ export class PacientesService {
       throw new NotFoundException('Paciente não encontrado');
     }
 
-    await this.pacientesRepository.remove(paciente);
-
-    return { message: 'Paciente deletado com sucesso' };
+    try {
+      await this.pacientesRepository.remove(paciente);
+      return { message: 'Paciente deletado com sucesso' };
+    } catch (error: any) {
+      // 23503: foreign_key_violation
+      if (error?.code === '23503') {
+        throw new BadRequestException(
+          'Não é possível excluir este paciente porque existem agendamentos ou pagamentos vinculados. Desative o paciente ou remova os vínculos antes de excluir.'
+        );
+      }
+      throw error;
+    }
   }
 
   // SOFT DELETE - Desativar paciente

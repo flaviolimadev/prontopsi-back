@@ -59,7 +59,7 @@ export class Paciente {
   @Column({ type: 'varchar', length: 7, nullable: true })
   cor: string | null;
 
-  @Column({ name: 'avatar', type: 'varchar', length: 1000, nullable: true })
+  @Column({ name: 'avatar', type: 'text', nullable: true })
   avatar: string | null;
 
   @CreateDateColumn({ name: 'created_at' })

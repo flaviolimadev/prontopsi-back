@@ -35,3 +35,4 @@ export class PasswordReset {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }
+
