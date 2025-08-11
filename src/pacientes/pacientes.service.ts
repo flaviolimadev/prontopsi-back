@@ -16,7 +16,9 @@ export class PacientesService {
     const paciente = this.pacientesRepository.create({
       ...createPacienteDto,
       userId,
-      status: createPacienteDto.status || 0,
+      // Por padrão, novo paciente deve iniciar como ATIVO (1)
+      // Mantém valor explícito se fornecido (incluindo 0)
+      status: createPacienteDto.status ?? 1,
     });
 
     const savedPaciente = await this.pacientesRepository.save(paciente);
