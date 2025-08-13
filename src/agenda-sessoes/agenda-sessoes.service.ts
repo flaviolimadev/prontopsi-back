@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Like } from 'typeorm';
 import { AgendaSessao } from '../entities/agenda-sessao.entity';
 import { CreateAgendaSessaoDto, UpdateAgendaSessaoDto, AgendaSessaoResponseDto } from '../dto/agenda-sessao.dto';
+import { Pagamento } from '../entities/pagamento.entity';
 
 @Injectable()
 export class AgendaSessoesService {
   constructor(
     @InjectRepository(AgendaSessao)
     private agendaSessoesRepository: Repository<AgendaSessao>,
+    @InjectRepository(Pagamento)
+    private pagamentoRepository: Repository<Pagamento>,
   ) {}
 
   // CREATE - Criar nova sessão
@@ -196,6 +199,9 @@ export class AgendaSessoesService {
     if (!agendaSessao) {
       throw new NotFoundException('Sessão não encontrada');
     }
+
+    // Remover pagamentos vinculados a esta sessão (garantia de integridade)
+    await this.pagamentoRepository.delete({ userId, agendaSessaoId: id });
 
     await this.agendaSessoesRepository.remove(agendaSessao);
     return { message: 'Sessão deletada com sucesso' };

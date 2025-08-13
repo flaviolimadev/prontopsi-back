@@ -45,3 +45,5 @@ async function deleteOldAvatar() {
 
 deleteOldAvatar().catch(console.error);
 
+
+

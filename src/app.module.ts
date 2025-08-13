@@ -13,6 +13,7 @@ import { PagamentosModule } from './pagamentos/pagamentos.module';
 import { ProfileModule } from './profile/profile.module';
 import { CadastroLinksModule } from './cadastro-links/cadastro-links.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AnamnesesModule } from './anamneses/anamneses.module';
 import { getDatabaseConfig } from './config/database.config';
 import { UserSubscriber } from './entities/subscribers/user.subscriber';
 
@@ -36,6 +37,7 @@ import { UserSubscriber } from './entities/subscribers/user.subscriber';
     ProfileModule,
     CadastroLinksModule,
     NotificationsModule,
+    AnamnesesModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserSubscriber],

@@ -83,3 +83,5 @@ async function testR2Connection() {
 // Executar o teste
 testR2Connection().catch(console.error);
 
+
+

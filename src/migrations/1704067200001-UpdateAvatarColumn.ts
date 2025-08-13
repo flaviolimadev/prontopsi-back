@@ -18,3 +18,5 @@ export class UpdateAvatarColumn1704067200001 implements MigrationInterface {
   }
 }
 
+
+

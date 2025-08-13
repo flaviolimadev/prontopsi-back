@@ -49,3 +49,5 @@ const url = customDomain ? `${customDomain}/${key}` : `https://${this.bucketName
 ## ⚠️ **Alternativa Temporária**
 Se não quiser configurar custom domain agora, podemos usar URLs assinadas temporárias.
 
+
+

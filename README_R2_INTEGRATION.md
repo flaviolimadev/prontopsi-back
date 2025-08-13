@@ -235,3 +235,5 @@ Para dúvidas sobre a integração R2:
 **Versão**: 1.0.0
 **Última atualização**: Dezembro 2024
 
+
+
