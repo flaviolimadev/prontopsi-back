@@ -33,12 +33,24 @@ export class UsersService {
         .where('user.phone IS NOT NULL OR user.whatsappNumber IS NOT NULL OR user.contato IS NOT NULL')
         .limit(1000)
         .getMany();
-      const onlyDigits = (val?: string | null) => String(val || '').replace(/\D/g, '').slice(-11);
-      const found = candidates.find(u =>
-        onlyDigits(u.phone) === digits ||
-        onlyDigits(u.whatsappNumber) === digits ||
-        onlyDigits(u.contato) === digits
-      );
+      const onlyDigits11 = (val?: string | null) => {
+        const d = String(val || '').replace(/\D/g, '');
+        // remover DDI 55 se vier salvo, comparar pelos últimos 11 ou 10
+        const nat = d.startsWith('55') ? d.slice(2) : d;
+        if (digits.length === 11) return nat.slice(-11);
+        return nat.slice(-10);
+      };
+      const normDigits = digits.length > 11 ? digits.slice(-11) : digits;
+      const altDigits = normDigits.length === 11 && normDigits.startsWith('9', 2)
+        ? normDigits.slice(0, 2) + normDigits.slice(3) // remove 9 após DDD
+        : (normDigits.length === 10 ? normDigits.slice(0,2) + '9' + normDigits.slice(2) : normDigits);
+
+      const found = candidates.find(u => {
+        const p = onlyDigits11(u.phone);
+        const w = onlyDigits11(u.whatsappNumber);
+        const c = onlyDigits11(u.contato);
+        return [p,w,c].some(val => val === normDigits || val === altDigits);
+      });
       if (found) return found;
     }
     return null;

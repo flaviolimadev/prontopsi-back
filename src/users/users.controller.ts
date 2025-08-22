@@ -34,28 +34,33 @@ export class UsersController {
     // Extrair apenas dígitos (antes do @, se houver)
     const idPart = raw.split('@')[0] || raw;
     const digitsFull = idPart.replace(/\D/g, '');
-    // Normalizamos para os últimos 11 dígitos (DDD + 9 dígitos no Brasil)
-    const digits = digitsFull.length > 11 ? digitsFull.slice(-11) : digitsFull;
-    if (!digits) {
+    // Remover DDI 55 se presente e normalizar para formato nacional (DDD + número)
+    let national = digitsFull.startsWith('55') ? digitsFull.slice(2) : digitsFull;
+    if (national.length > 11) national = national.slice(-11);
+    if (national.length < 10) {
       return { found: false, message: 'Número inválido' };
     }
 
-    // Gerar possíveis formatos: (84) 9683-7510, (84) 96837-510 etc.
-    const d = digits;
-    // Pegar últimos 11 dígitos se vier com DDI
-    const last11 = d.length > 11 ? d.slice(-11) : d;
-    const area = last11.slice(0, 2);
-    const rest = last11.slice(2); // 9 dígitos (se celular) ou 8 (se fixo)
-    // Celular 9 dígitos: 5-4. Sem o 9: 4-4
-    const hasLeadingNine = rest.length === 9 && rest.startsWith('9');
-    const restWithoutNine = hasLeadingNine ? rest.slice(1) : rest;
-    const formattedA = rest.length >= 9
-      ? `(${area}) ${rest.slice(0, 5)}-${rest.slice(5)}` // (84) 99683-7510
-      : `(${area}) ${rest.slice(0, 4)}-${rest.slice(4)}`; // fallback
-    const formattedB = `(${area}) ${restWithoutNine.slice(0, 4)}-${restWithoutNine.slice(4)}`; // (84) 9683-7510
+    const area = national.slice(0, 2);
+    const base = national.slice(2); // 8 ou 9 dígitos
+    const masks: string[] = [];
+    if (base.length === 9) {
+      // com 9
+      masks.push(`(${area}) ${base.slice(0, 5)}-${base.slice(5)}`);
+      // sem 9
+      const no9 = base.startsWith('9') ? base.slice(1) : base;
+      if (no9.length === 8) masks.push(`(${area}) ${no9.slice(0, 4)}-${no9.slice(4)}`);
+    } else if (base.length === 8) {
+      // sem 9
+      masks.push(`(${area}) ${base.slice(0, 4)}-${base.slice(4)}`);
+      // com 9 (inserindo 9 no início)
+      const with9 = `9${base}`;
+      masks.push(`(${area}) ${with9.slice(0, 5)}-${with9.slice(5)}`);
+    }
+    const [formattedA, formattedB] = Array.from(new Set(masks));
 
     // Buscar usuário por phone aproximado
-    const user = await this.usersService.findByPhoneLike(formattedA, formattedB, digits);
+    const user = await this.usersService.findByPhoneLike(formattedA, formattedB, national);
 
     if (!user) {
       return { found: false, message: 'Usuário não encontrado' };
