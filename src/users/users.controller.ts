@@ -45,10 +45,14 @@ export class UsersController {
     // Pegar últimos 11 dígitos se vier com DDI
     const last11 = d.length > 11 ? d.slice(-11) : d;
     const area = last11.slice(0, 2);
-    const rest = last11.slice(2);
-    // Formatos comuns no banco
-    const formattedA = `(${area}) ${rest.slice(0, 5)}-${rest.slice(5)}`; // (84) 96837-510?
-    const formattedB = `(${area}) ${rest.slice(0, 4)}-${rest.slice(4)}`; // (84) 9683-7510
+    const rest = last11.slice(2); // 9 dígitos (se celular) ou 8 (se fixo)
+    // Celular 9 dígitos: 5-4. Sem o 9: 4-4
+    const hasLeadingNine = rest.length === 9 && rest.startsWith('9');
+    const restWithoutNine = hasLeadingNine ? rest.slice(1) : rest;
+    const formattedA = rest.length >= 9
+      ? `(${area}) ${rest.slice(0, 5)}-${rest.slice(5)}` // (84) 99683-7510
+      : `(${area}) ${rest.slice(0, 4)}-${rest.slice(4)}`; // fallback
+    const formattedB = `(${area}) ${restWithoutNine.slice(0, 4)}-${restWithoutNine.slice(4)}`; // (84) 9683-7510
 
     // Buscar usuário por phone aproximado
     const user = await this.usersService.findByPhoneLike(formattedA, formattedB, digits);
