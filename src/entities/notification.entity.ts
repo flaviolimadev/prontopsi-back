@@ -49,7 +49,7 @@ export class Notification {
   @Column({ type: 'json', nullable: true })
   metadata?: any;
 
-  @Column({ nullable: true })
+  @Column({ name: 'action_url', nullable: true })
   actionUrl?: string;
 
   @CreateDateColumn({ name: 'created_at' })

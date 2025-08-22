@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
+import { Public } from '../auth/decorators/public.decorator';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -24,6 +25,40 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+  // POST - Retornar plano por número WhatsApp
+  // Body esperado: { "whatsapp": "558496837510@s.whatsapp.net" }
+  @Public()
+  @Post('plano/by-whatsapp')
+  async getPlanoByWhatsapp(@Body() body: { whatsapp: string }) {
+    const raw = String(body.whatsapp || '');
+    // Extrair apenas dígitos (antes do @, se houver)
+    const idPart = raw.split('@')[0] || raw;
+    const digitsFull = idPart.replace(/\D/g, '');
+    // Normalizamos para os últimos 11 dígitos (DDD + 9 dígitos no Brasil)
+    const digits = digitsFull.length > 11 ? digitsFull.slice(-11) : digitsFull;
+    if (!digits) {
+      return { found: false, message: 'Número inválido' };
+    }
+
+    // Gerar possíveis formatos: (84) 9683-7510, (84) 96837-510 etc.
+    const d = digits;
+    // Pegar últimos 11 dígitos se vier com DDI
+    const last11 = d.length > 11 ? d.slice(-11) : d;
+    const area = last11.slice(0, 2);
+    const rest = last11.slice(2);
+    // Formatos comuns no banco
+    const formattedA = `(${area}) ${rest.slice(0, 5)}-${rest.slice(5)}`; // (84) 96837-510?
+    const formattedB = `(${area}) ${rest.slice(0, 4)}-${rest.slice(4)}`; // (84) 9683-7510
+
+    // Buscar usuário por phone aproximado
+    const user = await this.usersService.findByPhoneLike(formattedA, formattedB, digits);
+
+    if (!user) {
+      return { found: false, message: 'Usuário não encontrado' };
+    }
+    const nomeCompleto = `${user.nome || ''} ${user.sobrenome || ''}`.trim();
+    return { found: true, userId: user.id, planoId: user.planoId, nome: nomeCompleto, email: user.email };
+  }
 
   // CREATE - Criar novo usuário
   @Post()

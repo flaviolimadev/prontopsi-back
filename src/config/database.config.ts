@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+ 
 
 export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
   type: 'postgres',
@@ -25,8 +25,7 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   // Configurações de logging
   logging: false,
   
-  // Estratégia de nomenclatura
-  namingStrategy: new SnakeNamingStrategy(),
+  // Estratégia de nomenclatura removida para manter nomes camelCase conforme migrations existentes
   
   // Configurações de SSL
   ssl: configService.get<string>('NODE_ENV') === 'production' 

@@ -17,8 +17,8 @@ export const AppDataSource = new DataSource({
   migrations: ['src/migrations/*{.ts,.js}'],
   migrationsTableName: 'migrations',
   
-  // Estratégia de nomenclatura
-  namingStrategy: new SnakeNamingStrategy(),
+  // Estratégia de nomenclatura - REMOVIDA para evitar conflitos com migrations existentes
+  // namingStrategy: new SnakeNamingStrategy(),
   
   // Configurações de logging
   logging: process.env.NODE_ENV === 'development',

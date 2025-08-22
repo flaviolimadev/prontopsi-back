@@ -13,6 +13,37 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
+  // Buscar por telefone/whatsapp aproximado (LIKE) e fallback por comparação de dígitos
+  async findByPhoneLike(maskA: string, maskB?: string, digits?: string): Promise<User | null> {
+    const qb = this.usersRepository.createQueryBuilder('user')
+      .where('user.phone LIKE :a', { a: `%${maskA}%` })
+      .orWhere('user.whatsappNumber LIKE :a', { a: `%${maskA}%` })
+      .orWhere('user.contato LIKE :a', { a: `%${maskA}%` });
+    if (maskB && maskB.trim()) {
+      qb.orWhere('user.phone LIKE :b', { b: `%${maskB}%` })
+        .orWhere('user.whatsappNumber LIKE :b', { b: `%${maskB}%` })
+        .orWhere('user.contato LIKE :b', { b: `%${maskB}%` });
+    }
+    qb.limit(1);
+    const match = await qb.getOne();
+    if (match) return match;
+
+    if (digits && digits.length >= 8) {
+      const candidates = await this.usersRepository.createQueryBuilder('user')
+        .where('user.phone IS NOT NULL OR user.whatsappNumber IS NOT NULL OR user.contato IS NOT NULL')
+        .limit(1000)
+        .getMany();
+      const onlyDigits = (val?: string | null) => String(val || '').replace(/\D/g, '').slice(-11);
+      const found = candidates.find(u =>
+        onlyDigits(u.phone) === digits ||
+        onlyDigits(u.whatsappNumber) === digits ||
+        onlyDigits(u.contato) === digits
+      );
+      if (found) return found;
+    }
+    return null;
+  }
+
   // CREATE - Criar novo usuário
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     // Verificar se email já existe

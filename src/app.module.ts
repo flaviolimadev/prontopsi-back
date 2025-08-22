@@ -10,6 +10,7 @@ import { AgendaSessoesModule } from './agenda-sessoes/agenda-sessoes.module';
 import { ProntuariosModule } from './prontuarios/prontuarios.module';
 import { PacotesModule } from './pacotes/pacotes.module';
 import { PagamentosModule } from './pagamentos/pagamentos.module';
+import { EfiPixModule } from './pagamentos/efi-pix.module';
 import { ProfileModule } from './profile/profile.module';
 import { CadastroLinksModule } from './cadastro-links/cadastro-links.module';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -34,6 +35,7 @@ import { UserSubscriber } from './entities/subscribers/user.subscriber';
     ProntuariosModule,
     PacotesModule,
     PagamentosModule,
+    EfiPixModule,
     ProfileModule,
     CadastroLinksModule,
     NotificationsModule,
