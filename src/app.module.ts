@@ -15,6 +15,7 @@ import { ProfileModule } from './profile/profile.module';
 import { CadastroLinksModule } from './cadastro-links/cadastro-links.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnamnesesModule } from './anamneses/anamneses.module';
+import { AutomationApiModule } from './automation-api/automation-api.module';
 import { getDatabaseConfig } from './config/database.config';
 import { UserSubscriber } from './entities/subscribers/user.subscriber';
 
@@ -40,6 +41,7 @@ import { UserSubscriber } from './entities/subscribers/user.subscriber';
     CadastroLinksModule,
     NotificationsModule,
     AnamnesesModule,
+    AutomationApiModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserSubscriber],
