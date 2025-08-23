@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AutomationApiService } from './automation-api.service';
 import { CreatePacienteDto } from '../dto/paciente.dto';
+import { CreateAgendaSessaoDto } from '../dto/agenda-sessao.dto';
 
 @Controller('automation-api')
 export class AutomationApiController {
@@ -165,5 +166,173 @@ export class AutomationApiController {
     }
     
     return this.automationApiService.createPaciente(userId, createPacienteDto);
+  }
+
+  // GET /automation-api/user/:userId/pacientes/create
+  // Cadastrar novo paciente via URL parameters
+  @Get('user/:userId/pacientes/create')
+  async createPacienteViaUrl(
+    @Param('userId') userId: string,
+    @Query('nome') nome: string,
+    @Query('telefone') telefone: string,
+    @Query('nascimento') nascimento: string,
+    @Query('genero') genero: string,
+    @Query('email') email?: string,
+    @Query('endereco') endereco?: string,
+    @Query('profissao') profissao?: string,
+    @Query('cpf') cpf?: string,
+    @Query('observacao_geral') observacao_geral?: string,
+    @Query('contato_emergencia') contato_emergencia?: string,
+    @Query('cor') cor?: string,
+    @Query('status') status?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!nome) {
+      throw new BadRequestException('Nome do paciente é obrigatório');
+    }
+    if (!telefone) {
+      throw new BadRequestException('Telefone do paciente é obrigatório');
+    }
+    if (!nascimento) {
+      throw new BadRequestException('Data de nascimento é obrigatória');
+    }
+    if (!genero) {
+      throw new BadRequestException('Gênero é obrigatório');
+    }
+
+    // Converter status string para number se fornecido
+    const statusNumber = status ? parseInt(status, 10) : undefined;
+
+    const createPacienteDto: CreatePacienteDto = {
+      nome,
+      telefone,
+      nascimento,
+      genero,
+      email: email || undefined,
+      endereco: endereco || undefined,
+      profissao: profissao || undefined,
+      cpf: cpf || undefined,
+      observacao_geral: observacao_geral || undefined,
+      contato_emergencia: contato_emergencia || undefined,
+      cor: cor || undefined,
+      status: statusNumber,
+    };
+    
+    return this.automationApiService.createPaciente(userId, createPacienteDto);
+  }
+
+  // POST /automation-api/user/:userId/agenda-sessoes
+  // Agendar nova sessão para um paciente
+  @Post('user/:userId/agenda-sessoes')
+  @HttpCode(HttpStatus.CREATED)
+  async createAgendaSessao(
+    @Param('userId') userId: string,
+    @Body() createAgendaSessaoDto: CreateAgendaSessaoDto,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!createAgendaSessaoDto.pacienteId) {
+      throw new BadRequestException('ID do paciente é obrigatório');
+    }
+    if (!createAgendaSessaoDto.data) {
+      throw new BadRequestException('Data da sessão é obrigatória');
+    }
+    if (!createAgendaSessaoDto.horario) {
+      throw new BadRequestException('Horário da sessão é obrigatório');
+    }
+    if (!createAgendaSessaoDto.tipoDaConsulta) {
+      throw new BadRequestException('Tipo da consulta é obrigatório');
+    }
+    if (!createAgendaSessaoDto.modalidade) {
+      throw new BadRequestException('Modalidade é obrigatória');
+    }
+    if (!createAgendaSessaoDto.tipoAtendimento) {
+      throw new BadRequestException('Tipo de atendimento é obrigatório');
+    }
+    if (!createAgendaSessaoDto.duracao) {
+      throw new BadRequestException('Duração da sessão é obrigatória');
+    }
+    
+    return this.automationApiService.createAgendaSessao(userId, createAgendaSessaoDto);
+  }
+
+  // GET /automation-api/user/:userId/agenda-sessoes/create
+  // Agendar nova sessão via URL parameters
+  @Get('user/:userId/agenda-sessoes/create')
+  async createAgendaSessaoViaUrl(
+    @Param('userId') userId: string,
+    @Query('pacienteId') pacienteId: string,
+    @Query('data') data: string,
+    @Query('horario') horario: string,
+    @Query('tipoDaConsulta') tipoDaConsulta: string,
+    @Query('modalidade') modalidade: string,
+    @Query('tipoAtendimento') tipoAtendimento: string,
+    @Query('duracao') duracao: string,
+    @Query('observacao') observacao?: string,
+    @Query('value') value?: string,
+    @Query('status') status?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!pacienteId) {
+      throw new BadRequestException('ID do paciente é obrigatório');
+    }
+    if (!data) {
+      throw new BadRequestException('Data da sessão é obrigatória');
+    }
+    if (!horario) {
+      throw new BadRequestException('Horário da sessão é obrigatório');
+    }
+    if (!tipoDaConsulta) {
+      throw new BadRequestException('Tipo da consulta é obrigatório');
+    }
+    if (!modalidade) {
+      throw new BadRequestException('Modalidade é obrigatória');
+    }
+    if (!tipoAtendimento) {
+      throw new BadRequestException('Tipo de atendimento é obrigatório');
+    }
+    if (!duracao) {
+      throw new BadRequestException('Duração da sessão é obrigatória');
+    }
+
+    // Converter valores string para number
+    const duracaoNumber = parseInt(duracao, 10);
+    const valueNumber = value ? parseFloat(value) : undefined;
+    const statusNumber = status ? parseInt(status, 10) : undefined;
+
+    if (isNaN(duracaoNumber)) {
+      throw new BadRequestException('Duração deve ser um número válido');
+    }
+
+    const createAgendaSessaoDto: CreateAgendaSessaoDto = {
+      pacienteId,
+      data,
+      horario,
+      tipoDaConsulta,
+      modalidade,
+      tipoAtendimento,
+      duracao: duracaoNumber,
+      observacao: observacao || undefined,
+      value: valueNumber,
+      status: statusNumber,
+    };
+    
+    return this.automationApiService.createAgendaSessao(userId, createAgendaSessaoDto);
+  }
+
+  // GET /automation-api/users/search?q=termo
+  // Pesquisar usuários por nome, email ou CPF
+  @Get('users/search')
+  async searchUsers(@Query('q') searchTerm: string) {
+    if (!searchTerm) {
+      throw new BadRequestException('Parâmetro de pesquisa "q" é obrigatório');
+    }
+    
+    return this.automationApiService.searchUsers(searchTerm);
   }
 }

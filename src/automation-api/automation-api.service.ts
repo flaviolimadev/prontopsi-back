@@ -7,6 +7,7 @@ import { AgendaSessao } from '../entities/agenda-sessao.entity';
 import { Pagamento } from '../entities/pagamento.entity';
 import { Pacote } from '../entities/pacote.entity';
 import { CreatePacienteDto } from '../dto/paciente.dto';
+import { CreateAgendaSessaoDto } from '../dto/agenda-sessao.dto';
 
 @Injectable()
 export class AutomationApiService {
@@ -272,6 +273,111 @@ export class AutomationApiService {
       };
     } catch (error) {
       console.error('❌ Erro ao criar paciente:', error.message);
+      throw error;
+    }
+  }
+
+  // Pesquisar usuários por nome, email ou CPF
+  async searchUsers(searchTerm: string) {
+    try {
+      console.log('🔍 Pesquisando usuários com termo:', searchTerm);
+      
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        throw new BadRequestException('Termo de pesquisa deve ter pelo menos 2 caracteres');
+      }
+
+      const searchTermUpper = searchTerm.trim().toUpperCase();
+      
+      // Buscar usuários por nome, email ou CPF
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .where('UPPER(user.nome) LIKE :searchTerm', { searchTerm: `%${searchTermUpper}%` })
+        .orWhere('UPPER(user.sobrenome) LIKE :searchTerm', { searchTerm: `%${searchTermUpper}%` })
+        .orWhere('UPPER(user.email) LIKE :searchTerm', { searchTerm: `%${searchTermUpper}%` })
+        .orWhere('user.cpf LIKE :searchTerm', { searchTerm: `%${searchTerm.replace(/\D/g, '')}%` })
+        .select([
+          'user.id',
+          'user.nome', 
+          'user.sobrenome',
+          'user.email',
+          'user.code',
+          'user.contato',
+          'user.phone',
+          'user.crp',
+          'user.clinicName',
+          'user.status',
+          'user.createdAt'
+        ])
+        .orderBy('user.nome', 'ASC')
+        .limit(50) // Limitar resultados para performance
+        .getMany();
+
+      console.log(`📋 Encontrados ${users.length} usuários`);
+
+      return {
+        success: true,
+        data: users,
+        total: users.length,
+        searchTerm: searchTerm,
+      };
+    } catch (error) {
+      console.error('❌ Erro ao pesquisar usuários:', error.message);
+      throw error;
+    }
+  }
+
+  // Agendar nova sessão para um paciente
+  async createAgendaSessao(userId: string, createAgendaSessaoDto: CreateAgendaSessaoDto) {
+    try {
+      console.log('📅 Agendando nova sessão para usuário:', userId);
+      console.log('📝 Dados da sessão:', createAgendaSessaoDto);
+      
+      // Validar usuário
+      await this.validateUser(userId);
+      console.log('✅ Usuário validado para agendamento');
+      
+      // Verificar se o paciente pertence ao usuário
+      const paciente = await this.pacienteRepository.findOne({
+        where: { id: createAgendaSessaoDto.pacienteId, userId },
+      });
+
+      if (!paciente) {
+        throw new BadRequestException('Paciente não encontrado para este usuário');
+      }
+      
+      console.log('👤 Paciente validado:', paciente.nome);
+      
+      // Verificar se já existe uma sessão no mesmo horário
+      const existingSessao = await this.agendaSessaoRepository.findOne({
+        where: { 
+          userId, 
+          data: createAgendaSessaoDto.data, 
+          horario: createAgendaSessaoDto.horario 
+        },
+      });
+      
+      if (existingSessao) {
+        throw new BadRequestException('Já existe uma sessão agendada para este horário');
+      }
+      
+      // Criar a sessão
+      const sessao = this.agendaSessaoRepository.create({
+        ...createAgendaSessaoDto,
+        userId,
+        status: createAgendaSessaoDto.status || 1, // 1 = confirmado por padrão
+        value: createAgendaSessaoDto.value || 0, // 0 por padrão se não informado
+      });
+
+      const savedSessao = await this.agendaSessaoRepository.save(sessao);
+      console.log('✅ Sessão agendada com sucesso. ID:', savedSessao.id);
+
+      return {
+        success: true,
+        message: 'Sessão agendada com sucesso',
+        data: savedSessao,
+      };
+    } catch (error) {
+      console.error('❌ Erro ao agendar sessão:', error.message);
       throw error;
     }
   }
