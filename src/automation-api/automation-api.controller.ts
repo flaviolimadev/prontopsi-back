@@ -335,4 +335,21 @@ export class AutomationApiController {
     
     return this.automationApiService.searchUsers(searchTerm);
   }
+
+  // GET /automation-api/user/:userId/pacientes/search?q=termo
+  // Pesquisar pacientes de um usuário específico por nome, email ou CPF
+  @Get('user/:userId/pacientes/search')
+  async searchPacientes(
+    @Param('userId') userId: string,
+    @Query('q') searchTerm: string
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!searchTerm) {
+      throw new BadRequestException('Parâmetro de pesquisa "q" é obrigatório');
+    }
+    
+    return this.automationApiService.searchPacientes(userId, searchTerm);
+  }
 }

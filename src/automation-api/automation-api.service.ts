@@ -381,4 +381,63 @@ export class AutomationApiService {
       throw error;
     }
   }
+
+  // Pesquisar pacientes de um usuário específico por nome, email ou CPF
+  async searchPacientes(userId: string, searchTerm: string) {
+    try {
+      console.log('🔍 Pesquisando pacientes do usuário:', userId, 'com termo:', searchTerm);
+      
+      // Validar usuário
+      await this.validateUser(userId);
+      
+      if (!searchTerm || searchTerm.trim().length < 2) {
+        throw new BadRequestException('Termo de pesquisa deve ter pelo menos 2 caracteres');
+      }
+
+      const searchTermUpper = searchTerm.trim().toUpperCase();
+      
+      // Buscar pacientes por nome, email ou CPF (apenas do usuário específico)
+      const pacientes = await this.pacienteRepository
+        .createQueryBuilder('paciente')
+        .where('paciente.userId = :userId', { userId })
+        .andWhere('(' +
+          'UPPER(paciente.nome) LIKE :searchTerm OR ' +
+          'UPPER(paciente.email) LIKE :searchTerm OR ' +
+          'paciente.cpf LIKE :cpfTerm' +
+        ')', { 
+          searchTerm: `%${searchTermUpper}%`,
+          cpfTerm: `%${searchTerm.replace(/\D/g, '')}%`
+        })
+        .select([
+          'paciente.id',
+          'paciente.nome', 
+          'paciente.email',
+          'paciente.telefone',
+          'paciente.cpf',
+          'paciente.nascimento',
+          'paciente.genero',
+          'paciente.endereco',
+          'paciente.profissao',
+          'paciente.status',
+          'paciente.cor',
+          'paciente.createdAt'
+        ])
+        .orderBy('paciente.nome', 'ASC')
+        .limit(50) // Limitar resultados para performance
+        .getMany();
+
+      console.log(`📋 Encontrados ${pacientes.length} pacientes para o usuário ${userId}`);
+
+      return {
+        success: true,
+        data: pacientes,
+        total: pacientes.length,
+        searchTerm: searchTerm,
+        userId: userId,
+      };
+    } catch (error) {
+      console.error('❌ Erro ao pesquisar pacientes:', error.message);
+      throw error;
+    }
+  }
 }

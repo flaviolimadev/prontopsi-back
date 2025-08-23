@@ -42,6 +42,7 @@ http://localhost:3000/api/automation-api
 | POST | `/user/:userId/agenda-sessoes` | Agenda nova sessão (JSON) |
 | GET | `/user/:userId/pacientes/create` | Cadastra novo paciente (URL) |
 | GET | `/user/:userId/agenda-sessoes/create` | Agenda nova sessão (URL) |
+| GET | `/user/:userId/pacientes/search?q=termo` | Pesquisa pacientes do usuário |
 | GET | `/users/search?q=termo` | Pesquisa usuários por nome, email ou CPF |
 
 ## Como Usar
@@ -201,7 +202,31 @@ searchUsers('silva@email.com'); // Buscar por email
 searchUsers('12345678900');     // Buscar por CPF
 ```
 
-### 5. Cadastro de Pacientes
+### 5. Pesquisa de Pacientes por Usuário
+
+```javascript
+// Pesquisar pacientes de um usuário específico
+async function searchPacientes(userId, searchTerm) {
+  const response = await fetch(
+    `http://localhost:3000/api/automation-api/user/${userId}/pacientes/search?q=${encodeURIComponent(searchTerm)}`
+  );
+  const data = await response.json();
+  
+  console.log(`Encontrados ${data.total} pacientes:`);
+  data.data.forEach(paciente => {
+    console.log(`- ${paciente.nome} (${paciente.email || 'Sem email'}) - ID: ${paciente.id}`);
+  });
+  
+  return data;
+}
+
+// Exemplos de uso
+searchPacientes('123e4567-e89b-12d3-a456-426614174000', 'Maria');        // Buscar por nome
+searchPacientes('123e4567-e89b-12d3-a456-426614174000', 'silva@email');  // Buscar por email
+searchPacientes('123e4567-e89b-12d3-a456-426614174000', '12345678900');  // Buscar por CPF
+```
+
+### 6. Cadastro de Pacientes
 
 ```javascript
 // Cadastrar novo paciente
