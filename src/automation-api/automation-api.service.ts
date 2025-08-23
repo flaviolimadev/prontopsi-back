@@ -351,7 +351,7 @@ export class AutomationApiService {
       const existingSessao = await this.agendaSessaoRepository.findOne({
         where: { 
           userId, 
-          data: createAgendaSessaoDto.data, 
+          data: new Date(createAgendaSessaoDto.data), 
           horario: createAgendaSessaoDto.horario 
         },
       });
