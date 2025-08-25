@@ -14,15 +14,7 @@ async function bootstrap() {
   
   // Configurar CORS para aceitar o frontend
   app.enableCors({
-    origin: [
-      'http://localhost:3000',  // Vite dev server
-      'http://localhost:8080',  // Vite dev server (porta alternativa)
-      'http://localhost:5173',  // Vite dev server (porta padrão)
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:8080',
-      'http://127.0.0.1:5173',
-      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []), // URL do frontend configurada no .env
-    ],
+    origin: true, // Permitir todas as origens em desenvolvimento
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -47,7 +39,7 @@ async function bootstrap() {
   );
   
   // Configurar arquivos estáticos para avatars
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
     prefix: '/uploads/',
     setHeaders: (res, path) => {
       // Permitir CORS para imagens
