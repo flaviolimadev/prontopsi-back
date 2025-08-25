@@ -299,7 +299,7 @@ export class AutomationApiController {
     const valueNumber = value ? parseFloat(value) : undefined;
     const statusNumber = status ? parseInt(status, 10) : undefined;
 
-    if (duracao && isNaN(duracaoNumber)) {
+    if (duracao && duracaoNumber !== undefined && isNaN(duracaoNumber)) {
       throw new BadRequestException('Duração deve ser um número válido se fornecida');
     }
 
