@@ -252,9 +252,7 @@ export class AutomationApiController {
     if (!createAgendaSessaoDto.tipoAtendimento) {
       throw new BadRequestException('Tipo de atendimento é obrigatório');
     }
-    if (!createAgendaSessaoDto.duracao) {
-      throw new BadRequestException('Duração da sessão é obrigatória');
-    }
+    // Duração é opcional, padrão 50 minutos
     
     return this.automationApiService.createAgendaSessao(userId, createAgendaSessaoDto);
   }
@@ -270,7 +268,7 @@ export class AutomationApiController {
     @Query('tipoDaConsulta') tipoDaConsulta: string,
     @Query('modalidade') modalidade: string,
     @Query('tipoAtendimento') tipoAtendimento: string,
-    @Query('duracao') duracao: string,
+    @Query('duracao') duracao?: string,
     @Query('observacao') observacao?: string,
     @Query('value') value?: string,
     @Query('status') status?: string,
@@ -296,17 +294,13 @@ export class AutomationApiController {
     if (!tipoAtendimento) {
       throw new BadRequestException('Tipo de atendimento é obrigatório');
     }
-    if (!duracao) {
-      throw new BadRequestException('Duração da sessão é obrigatória');
-    }
-
-    // Converter valores string para number
-    const duracaoNumber = parseInt(duracao, 10);
+    // Duração é opcional, padrão 50 minutos
+    const duracaoNumber = duracao ? parseInt(duracao, 10) : undefined;
     const valueNumber = value ? parseFloat(value) : undefined;
     const statusNumber = status ? parseInt(status, 10) : undefined;
 
-    if (isNaN(duracaoNumber)) {
-      throw new BadRequestException('Duração deve ser um número válido');
+    if (duracao && isNaN(duracaoNumber)) {
+      throw new BadRequestException('Duração deve ser um número válido se fornecida');
     }
 
     const createAgendaSessaoDto: CreateAgendaSessaoDto = {
@@ -351,5 +345,115 @@ export class AutomationApiController {
     }
     
     return this.automationApiService.searchPacientes(userId, searchTerm);
+  }
+
+  // GET /automation-api/user/:userId/pacientes/:pacienteId/edit
+  // Editar paciente via URL parameters
+  @Get('user/:userId/pacientes/:pacienteId/edit')
+  async editPacienteViaUrl(
+    @Param('userId') userId: string,
+    @Param('pacienteId') pacienteId: string,
+    @Query('nome') nome?: string,
+    @Query('telefone') telefone?: string,
+    @Query('nascimento') nascimento?: string,
+    @Query('genero') genero?: string,
+    @Query('email') email?: string,
+    @Query('endereco') endereco?: string,
+    @Query('profissao') profissao?: string,
+    @Query('cpf') cpf?: string,
+    @Query('observacao_geral') observacao_geral?: string,
+    @Query('contato_emergencia') contato_emergencia?: string,
+    @Query('cor') cor?: string,
+    @Query('status') status?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!pacienteId) {
+      throw new BadRequestException('ID do paciente é obrigatório');
+    }
+
+    // Criar objeto com apenas os campos fornecidos (não nulos/undefined)
+    const updateData: any = {};
+    if (nome) updateData.nome = nome;
+    if (telefone) updateData.telefone = telefone;
+    if (nascimento) updateData.nascimento = nascimento;
+    if (genero) updateData.genero = genero;
+    if (email) updateData.email = email;
+    if (endereco) updateData.endereco = endereco;
+    if (profissao) updateData.profissao = profissao;
+    if (cpf) updateData.cpf = cpf;
+    if (observacao_geral) updateData.observacao_geral = observacao_geral;
+    if (contato_emergencia) updateData.contato_emergencia = contato_emergencia;
+    if (cor) updateData.cor = cor;
+    if (status) updateData.status = parseInt(status, 10);
+
+    // Verificar se pelo menos um campo foi fornecido
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('Pelo menos um campo deve ser fornecido para edição');
+    }
+    
+    return this.automationApiService.editPaciente(userId, pacienteId, updateData);
+  }
+
+  // GET /automation-api/user/:userId/agenda-sessoes/:sessaoId/edit
+  // Editar agenda sessão via URL parameters
+  @Get('user/:userId/agenda-sessoes/:sessaoId/edit')
+  async editAgendaSessaoViaUrl(
+    @Param('userId') userId: string,
+    @Param('sessaoId') sessaoId: string,
+    @Query('data') data?: string,
+    @Query('horario') horario?: string,
+    @Query('tipoDaConsulta') tipoDaConsulta?: string,
+    @Query('modalidade') modalidade?: string,
+    @Query('tipoAtendimento') tipoAtendimento?: string,
+    @Query('duracao') duracao?: string,
+    @Query('observacao') observacao?: string,
+    @Query('value') value?: string,
+    @Query('status') status?: string,
+  ) {
+    if (!userId) {
+      throw new BadRequestException('ID do usuário é obrigatório');
+    }
+    if (!sessaoId) {
+      throw new BadRequestException('ID da sessão é obrigatório');
+    }
+
+    // Criar objeto com apenas os campos fornecidos (não nulos/undefined)
+    const updateData: any = {};
+    if (data) updateData.data = data;
+    if (horario) updateData.horario = horario;
+    if (tipoDaConsulta) updateData.tipoDaConsulta = tipoDaConsulta;
+    if (modalidade) updateData.modalidade = modalidade;
+    if (tipoAtendimento) updateData.tipoAtendimento = tipoAtendimento;
+    if (duracao) {
+      const duracaoNumber = parseInt(duracao, 10);
+      if (isNaN(duracaoNumber)) {
+        throw new BadRequestException('Duração deve ser um número válido');
+      }
+      updateData.duracao = duracaoNumber;
+    }
+    if (observacao) updateData.observacao = observacao;
+    if (value) {
+      const valueNumber = parseFloat(value);
+      if (isNaN(valueNumber)) {
+        throw new BadRequestException('Valor deve ser um número válido');
+      }
+      updateData.value = valueNumber;
+    }
+    if (status) {
+      const statusNumber = parseInt(status, 10);
+      if (isNaN(statusNumber)) {
+        throw new BadRequestException('Status deve ser um número válido');
+      }
+      updateData.status = statusNumber;
+    }
+
+    // Verificar se pelo menos um campo foi fornecido
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException('Pelo menos um campo deve ser fornecido para edição');
+    }
+    
+    return this.automationApiService.editAgendaSessao(userId, sessaoId, updateData);
   }
 }

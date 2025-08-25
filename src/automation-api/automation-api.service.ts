@@ -364,6 +364,7 @@ export class AutomationApiService {
       const sessao = this.agendaSessaoRepository.create({
         ...createAgendaSessaoDto,
         userId,
+        duracao: createAgendaSessaoDto.duracao || 50, // 50 minutos por padrão
         status: createAgendaSessaoDto.status || 1, // 1 = confirmado por padrão
         value: createAgendaSessaoDto.value || 0, // 0 por padrão se não informado
       });
@@ -437,6 +438,105 @@ export class AutomationApiService {
       };
     } catch (error) {
       console.error('❌ Erro ao pesquisar pacientes:', error.message);
+      throw error;
+    }
+  }
+
+  // Editar paciente
+  async editPaciente(userId: string, pacienteId: string, updateData: any) {
+    try {
+      console.log('✏️ Editando paciente:', pacienteId, 'para usuário:', userId);
+      console.log('📝 Dados para atualização:', updateData);
+      
+      // Validar usuário
+      await this.validateUser(userId);
+      console.log('✅ Usuário validado para edição de paciente');
+      
+      // Verificar se o paciente pertence ao usuário
+      const paciente = await this.pacienteRepository.findOne({
+        where: { id: pacienteId, userId },
+      });
+
+      if (!paciente) {
+        throw new BadRequestException('Paciente não encontrado para este usuário');
+      }
+      
+      console.log('👤 Paciente encontrado:', paciente.nome);
+      
+      // Atualizar o paciente
+      await this.pacienteRepository.update(
+        { id: pacienteId, userId },
+        updateData
+      );
+      
+      // Buscar paciente atualizado
+      const pacienteAtualizado = await this.pacienteRepository.findOne({
+        where: { id: pacienteId, userId },
+      });
+      
+      console.log('✅ Paciente editado com sucesso');
+
+      return {
+        success: true,
+        message: 'Paciente editado com sucesso',
+        data: pacienteAtualizado,
+        updated_fields: Object.keys(updateData),
+      };
+    } catch (error) {
+      console.error('❌ Erro ao editar paciente:', error.message);
+      throw error;
+    }
+  }
+
+  // Editar agenda sessão
+  async editAgendaSessao(userId: string, sessaoId: string, updateData: any) {
+    try {
+      console.log('✏️ Editando sessão:', sessaoId, 'para usuário:', userId);
+      console.log('📝 Dados para atualização:', updateData);
+      
+      // Validar usuário
+      await this.validateUser(userId);
+      console.log('✅ Usuário validado para edição de sessão');
+      
+      // Verificar se a sessão pertence ao usuário
+      const sessao = await this.agendaSessaoRepository.findOne({
+        where: { id: sessaoId, userId },
+        relations: ['paciente'],
+      });
+
+      if (!sessao) {
+        throw new BadRequestException('Sessão não encontrada para este usuário');
+      }
+      
+      console.log('📅 Sessão encontrada:', sessao.tipoDaConsulta, 'para paciente:', sessao.paciente?.nome);
+      
+      // Se a data foi alterada, converter string para Date
+      if (updateData.data) {
+        updateData.data = new Date(updateData.data);
+      }
+      
+      // Atualizar a sessão
+      await this.agendaSessaoRepository.update(
+        { id: sessaoId, userId },
+        updateData
+      );
+      
+      // Buscar sessão atualizada
+      const sessaoAtualizada = await this.agendaSessaoRepository.findOne({
+        where: { id: sessaoId, userId },
+        relations: ['paciente'],
+      });
+      
+      console.log('✅ Sessão editada com sucesso');
+
+      return {
+        success: true,
+        message: 'Sessão editada com sucesso',
+        data: sessaoAtualizada,
+        updated_fields: Object.keys(updateData),
+      };
+    } catch (error) {
+      console.error('❌ Erro ao editar sessão:', error.message);
       throw error;
     }
   }

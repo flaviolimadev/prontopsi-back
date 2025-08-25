@@ -19,10 +19,11 @@ export class CreateAgendaSessaoDto {
   @IsString()
   tipoAtendimento: string;
 
+  @IsOptional()
   @IsInt()
   @Min(15)
   @Max(480) // 8 horas máximo
-  duracao: number;
+  duracao?: number; // Padrão: 50 minutos
 
   @IsOptional()
   @IsString()
