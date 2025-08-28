@@ -13,8 +13,36 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '10mb' }));
   
   // Configurar CORS para aceitar o frontend
+  const allowedOrigins = [
+    'http://localhost:8080',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://prontupsi.com',
+    'https://www.prontupsi.com',
+    'https://back.prontupsi.com',
+    'https://back-end.prontupsi.com',
+    process.env.FRONTEND_URL
+  ].filter(Boolean);
+  
   app.enableCors({
-    origin: true, // Permitir todas as origens em desenvolvimento
+    origin: function (origin, callback) {
+      // Permitir requisições sem origin (ex: mobile apps, Postman)
+      if (!origin) return callback(null, true);
+      
+      // Verificar se a origin está na lista permitida
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      
+      // Em desenvolvimento, permitir localhost com qualquer porta
+      if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+      
+      console.log('🚫 CORS bloqueou origin:', origin);
+      console.log('✅ Origins permitidas:', allowedOrigins);
+      return callback(new Error('Bloqueado pela política de CORS'), false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -65,7 +93,7 @@ async function bootstrap() {
   
   console.log(`🚀 Backend rodando na porta ${port}`);
   console.log(`📊 API disponível em: http://localhost:${port}/api`);
-  console.log(`🌐 CORS configurado para frontend`);
+  console.log(`🌐 CORS configurado para origins:`, allowedOrigins);
   console.log(`📁 Arquivos estáticos em: http://localhost:${port}/uploads`);
 }
 bootstrap();
