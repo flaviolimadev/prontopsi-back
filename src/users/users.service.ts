@@ -489,6 +489,7 @@ export class UsersService {
       descricao: user.descricao,
       referredAt: user.referredAt,
       emailVerified: user.emailVerified,
+      isAdmin: user.isAdmin,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

@@ -27,10 +27,8 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   
   // Estratégia de nomenclatura removida para manter nomes camelCase conforme migrations existentes
   
-  // Configurações de SSL
-  ssl: configService.get<string>('NODE_ENV') === 'production' 
-    ? { rejectUnauthorized: false } 
-    : false,
+  // Configurações de SSL - Desabilitado para compatibilidade com servidor
+  ssl: false,
   
   // Configurações de pool de conexões
   extra: {

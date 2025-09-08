@@ -37,7 +37,8 @@ export class AuthService {
       id: user.id,
       email: user.email,
       status: user.status,
-      emailVerified: user.emailVerified
+      emailVerified: user.emailVerified,
+      isAdmin: user.isAdmin
     });
     
     const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -107,6 +108,7 @@ export class AuthService {
         descricao: user.descricao,
         referredAt: user.referredAt,
         emailVerified: user.emailVerified,
+        isAdmin: user.isAdmin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

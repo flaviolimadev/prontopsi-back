@@ -100,6 +100,9 @@ export class User {
   @Column({ name: 'email_verification_expires', type: 'timestamp', nullable: true })
   emailVerificationExpires: Date | null;
 
+  @Column({ name: 'is_admin', type: 'boolean', default: false })
+  isAdmin: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

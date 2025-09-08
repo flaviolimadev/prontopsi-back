@@ -17,6 +17,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnamnesesModule } from './anamneses/anamneses.module';
 import { AutomationApiModule } from './automation-api/automation-api.module';
 import { PublicModule } from './public/public.module';
+import { AdminModule } from './admin/admin.module';
 import { getDatabaseConfig } from './config/database.config';
 import { UserSubscriber } from './entities/subscribers/user.subscriber';
 
@@ -44,6 +45,7 @@ import { UserSubscriber } from './entities/subscribers/user.subscriber';
     AnamnesesModule,
     AutomationApiModule,
     PublicModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService, UserSubscriber],

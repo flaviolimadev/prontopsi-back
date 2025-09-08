@@ -23,8 +23,6 @@ export const AppDataSource = new DataSource({
   // Configurações de logging
   logging: process.env.NODE_ENV === 'development',
   
-  // Configurações de SSL
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: false } 
-    : false,
+  // Configurações de SSL - Desabilitado para compatibilidade com servidor
+  ssl: false,
 }); 

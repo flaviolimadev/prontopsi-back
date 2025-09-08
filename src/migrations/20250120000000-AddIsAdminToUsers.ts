@@ -1,29 +1,18 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class UpdateAvatarColumn1704067200001 implements MigrationInterface {
-  name = 'UpdateAvatarColumn1704067200001';
-
+export class AddIsAdminToUsers20250120000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "users" 
-      ALTER COLUMN "avatar" TYPE VARCHAR(1000)
+      ADD COLUMN "is_admin" boolean NOT NULL DEFAULT false
     `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "users" 
-      ALTER COLUMN "avatar" TYPE VARCHAR(255)
+      DROP COLUMN "is_admin"
     `);
   }
 }
-
-
-
-
-
-
-
-
-
 

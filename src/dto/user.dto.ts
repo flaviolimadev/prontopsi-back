@@ -99,6 +99,10 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatar?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isAdmin?: boolean;
 }
 
 export class UpdateUserDto {
@@ -190,6 +194,10 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   avatar?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isAdmin?: boolean;
 }
 
 export class LoginUserDto {
@@ -229,6 +237,7 @@ export class UserResponseDto {
   descricao?: string | null;
   referredAt?: string | null;
   emailVerified?: boolean;
+  isAdmin?: boolean;
   createdAt: string;
   updatedAt: string;
 } 

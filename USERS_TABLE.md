@@ -22,6 +22,7 @@ A tabela `users` armazena informações dos usuários do sistema ProntoPsi.
 | `avatar` | VARCHAR | 255 | ✅ | NULL | URL do avatar |
 | `descricao` | TEXT | - | ✅ | NULL | Descrição do usuário |
 | `referred_at` | VARCHAR | 20 | ✅ | NULL | Código do usuário que indicou |
+| `is_admin` | BOOLEAN | - | ❌ | false | Indica se o usuário é administrador |
 | `created_at` | TIMESTAMP | - | ❌ | `CURRENT_TIMESTAMP` | Data de criação |
 | `updated_at` | TIMESTAMP | - | ❌ | `CURRENT_TIMESTAMP` | Data de atualização |
 
