@@ -1,0 +1,69 @@
+# Dependências
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist
+build
+
+# Logs
+logs
+*.log
+
+# Arquivos de desenvolvimento
+.env.local
+.env.development
+.env.test
+
+# Cache
+.cache
+.parcel-cache
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testes
+coverage
+.nyc_output
+test
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Documentação
+README.md
+*.md
+
+# Configurações de desenvolvimento
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# Arquivos Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# TypeScript
+*.tsbuildinfo
+
+# Nest CLI
+nest-cli.json
+
+# Uploads de desenvolvimento (manter estrutura, não conteúdo)
+uploads/*
+!uploads/.gitkeep

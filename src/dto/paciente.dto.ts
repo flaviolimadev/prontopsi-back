@@ -1,0 +1,145 @@
+import { IsString, IsEmail, IsOptional, IsUUID, IsDateString, IsArray, IsNumber, IsIn } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class CreatePacienteDto {
+  @IsString()
+  @Transform(({ value }) => value.toUpperCase())
+  nome: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  endereco?: string;
+
+  @IsString()
+  telefone: string;
+
+  @IsOptional()
+  @IsString()
+  profissao?: string;
+
+  @IsDateString()
+  nascimento: string;
+
+  @IsOptional()
+  @IsString()
+  cpf?: string;
+
+  @IsString()
+  @IsIn(['Masculino', 'Feminino', 'Prefiro não informar'])
+  genero: string;
+
+  @IsOptional()
+  @IsString()
+  observacao_geral?: string;
+
+  @IsOptional()
+  @IsString()
+  contato_emergencia?: string;
+
+  @IsOptional()
+  medicacoes?: any[];
+
+  @IsOptional()
+  contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
+
+  @IsOptional()
+  @IsString()
+  cor?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string | null;
+
+  @IsOptional()
+  @IsNumber()
+  status?: number;
+}
+
+export class UpdatePacienteDto {
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value?.toUpperCase())
+  nome?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  endereco?: string;
+
+  @IsOptional()
+  @IsString()
+  telefone?: string;
+
+  @IsOptional()
+  @IsString()
+  profissao?: string;
+
+  @IsOptional()
+  @IsDateString()
+  nascimento?: string;
+
+  @IsOptional()
+  @IsString()
+  cpf?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['Masculino', 'Feminino', 'Prefiro não informar'])
+  genero?: string;
+
+  @IsOptional()
+  @IsString()
+  observacao_geral?: string;
+
+  @IsOptional()
+  @IsString()
+  contato_emergencia?: string;
+
+  @IsOptional()
+  medicacoes?: any[];
+
+  @IsOptional()
+  contatos_emergencia?: Array<{id: string, nome: string, telefone: string}>;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }) => value && typeof value === 'string' ? value : undefined)
+  cor?: string;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string | null;
+
+  @IsOptional()
+  @IsNumber()
+  status?: number;
+}
+
+export class PacienteResponseDto {
+  id: string;
+  userId: string;
+  nome: string;
+  email: string | null;
+  endereco: string | null;
+  telefone: string | null;
+  profissao: string | null;
+  nascimento: string | null;
+  cpf: string | null;
+  genero: string | null;
+  observacao_geral: string | null;
+  contato_emergencia: string | null;
+  contatos_emergencia: Array<{id: string, nome: string, telefone: string}> | null;
+  medicacoes: any[] | null;
+  status: number;
+  cor: string | null;
+  avatar: string | null;
+  createdAt: string;
+  updatedAt: string;
+} 

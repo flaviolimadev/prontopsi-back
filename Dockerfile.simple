@@ -1,0 +1,32 @@
+# Dockerfile ultra-simples para ProntuPsi Backend
+# Fallback caso o principal não funcione
+
+FROM node:20-alpine
+
+# Instalar curl para health check
+RUN apk add --no-cache curl
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar tudo
+COPY . .
+
+# Instalar dependências
+RUN npm install
+
+# Build da aplicação
+RUN npm run build
+
+# Verificar build
+RUN ls -la dist/ && echo "Build OK"
+
+# Expor porta
+EXPOSE 3019
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3019/api/health || exit 1
+
+# Comando de inicialização
+CMD ["node", "dist/src/main.js"] 

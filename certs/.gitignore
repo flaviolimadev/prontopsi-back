@@ -1,0 +1,17 @@
+# Certificados da Efí - NUNCA commitar
+
+*.pfx
+*.pem
+*.key
+*.crt
+
+# Arquivos de configuração sensíveis
+*.env
+.env.*
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
